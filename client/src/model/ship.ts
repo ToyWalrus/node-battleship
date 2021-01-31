@@ -89,7 +89,7 @@ export default class Ship {
 	private _checkIfInBounds(startSpot: Coordinate, dir: Direction): boolean {
 		// Subtracting length by 1 so the math is 0-based and will line
 		// up with the rows and columns being 1-based
-		let shipLength = length - 1;
+		let shipLength = this.length - 1;
 		switch (dir) {
 			case Direction.Left:
 				return startSpot.col - shipLength >= 1;
@@ -128,7 +128,7 @@ export default class Ship {
 
 	private _getSpotsFor(startSpot: Coordinate, dir: Direction): Coordinate[] {
 		let spots: Coordinate[] = [];
-		let shipLength = length - 1;
+		let shipLength = this.length - 1;
 		let startRowVal = startSpot.row;
 		switch (dir) {
 			case Direction.Left:

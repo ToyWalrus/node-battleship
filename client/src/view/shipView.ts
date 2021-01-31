@@ -13,6 +13,7 @@ export default class ShipView implements IRenderable {
 	owner: Player;
 	dragging: boolean;
 	dragStart: Vector2;
+	originalRotation: Direction;
 	shipLengthInPixels: number;
 
 	static currentFacingDirection: Direction = Direction.Right;
@@ -48,6 +49,7 @@ export default class ShipView implements IRenderable {
 
 		this.sceneObject.on('pointerdown', () => {
 			this.dragStart = { x: this.sceneObject.x, y: this.sceneObject.y };
+			this.originalRotation = ShipView.currentFacingDirection;
 		});
 
 		this.sceneObject.on('dragstart', () => {
@@ -63,15 +65,16 @@ export default class ShipView implements IRenderable {
 		this.sceneObject.on('dragend', (_, __, ___, droppedOnTarget) => {
 			this.dragging = false;
 			if (!droppedOnTarget) {
-				this.sceneObject.setPosition(this.dragStart.x, this.dragStart.y);
+				this.resetShipToPreviousPosition();
 				this.owner.deselectShip();
 			}
 		});
 
 		this.sceneObject.on('drop', (_, target: Phaser.GameObjects.GameObject) => {
 			const gridSquare = target.data.values as GridSquareView;
-			console.log('dropped on ', gridSquare);
-			gridSquare.onDropShipOverSquare(this);
+			if (!gridSquare.onDropShipOverSquare(this)) {
+				this.resetShipToPreviousPosition();
+			}
 			this.owner.deselectShip();
 		});
 	}
@@ -92,6 +95,12 @@ export default class ShipView implements IRenderable {
 			case Direction.Down:
 				return { x: mouseX, y: mouseY + offset };
 		}
+	}
+
+	resetShipToPreviousPosition() {
+		ShipView.currentFacingDirection = this.originalRotation;
+		this.updateShipRotation();
+		this.sceneObject.setPosition(this.dragStart.x, this.dragStart.y);
 	}
 
 	rotateClockwise(): void {

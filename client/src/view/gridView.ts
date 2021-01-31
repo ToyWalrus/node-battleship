@@ -64,7 +64,7 @@ export default class GridView implements IRenderable {
 			const yOffset = topLeft.y + squareSize * coord.row + offset;
 
 			// scale is modified so we can see grid lines between the squares
-			const modifiedScale = scale - scale / 20;
+			const modifiedScale = scale - scale / 40;
 			square.render(scene, { x: xOffset, y: yOffset }, modifiedScale);
 		});
 	}
@@ -81,6 +81,7 @@ export default class GridView implements IRenderable {
 			console.log(this.gridRef.toString());
 			// reposition ship within the grid
 			this.alignPlacedShip(ship, originCoordinate);
+			this.unhighlightAllSquares();
 		}
 		return success;
 	}
