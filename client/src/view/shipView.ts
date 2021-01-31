@@ -1,9 +1,8 @@
-import Game from '../model/game';
+import Coordinate from '../model/coordinate';
 import Player from '../model/Player';
 import Ship from '../model/ship';
-import { GridSquareDimensions } from '../utils/constants';
-import { Direction, GamePhase } from '../utils/enums';
-import { Dimensions, IRenderable, Vector2 } from '../utils/interfaces';
+import { Direction } from '../utils/enums';
+import { IRenderable, Vector2 } from '../utils/interfaces';
 import GridSquareView from './gridSquareView';
 
 export default class ShipView implements IRenderable {
@@ -15,6 +14,8 @@ export default class ShipView implements IRenderable {
 	dragStart: Vector2;
 	originalRotation: Direction;
 	shipLengthInPixels: number;
+	repositioningShip: boolean;
+	previousShipLocation: Coordinate;
 
 	static currentFacingDirection: Direction = Direction.Right;
 	static viewDepth = 2;
@@ -24,6 +25,7 @@ export default class ShipView implements IRenderable {
 		this.shipRef = ship;
 		this.assetPath = shipAsset;
 		this.dragging = false;
+		this.repositioningShip = false;
 	}
 
 	render(scene: Phaser.Scene, position: Vector2, scale: number): void {
@@ -54,6 +56,10 @@ export default class ShipView implements IRenderable {
 
 		this.sceneObject.on('dragstart', () => {
 			this.owner.selectShip(this.shipRef);
+			if (this.shipRef.hasBeenPlaced) {
+				this.repositioningShip = true;
+				this.shipRef.removeFromGrid();
+			}
 			this.updateShipRotation();
 		});
 
@@ -73,7 +79,9 @@ export default class ShipView implements IRenderable {
 		this.sceneObject.on('drop', (_, target: Phaser.GameObjects.GameObject) => {
 			const gridSquare = target.data.values as GridSquareView;
 			if (!gridSquare.onDropShipOverSquare(this)) {
-				this.resetShipToPreviousPosition();
+				this.resetShipToPreviousPosition(gridSquare);
+			} else {
+				this.previousShipLocation = gridSquare.coordinate;
 			}
 			this.owner.deselectShip();
 		});
@@ -97,10 +105,16 @@ export default class ShipView implements IRenderable {
 		}
 	}
 
-	resetShipToPreviousPosition() {
+	resetShipToPreviousPosition(gridSquare?: GridSquareView) {
 		ShipView.currentFacingDirection = this.originalRotation;
 		this.updateShipRotation();
 		this.sceneObject.setPosition(this.dragStart.x, this.dragStart.y);
+
+		if (gridSquare && this.previousShipLocation) {
+			this.shipRef.place(gridSquare.gridView.gridRef, this.previousShipLocation, this.originalRotation);
+			console.log('replaced ship:');
+			console.log(gridSquare.gridView.gridRef.toString());
+		}
 	}
 
 	rotateClockwise(): void {
