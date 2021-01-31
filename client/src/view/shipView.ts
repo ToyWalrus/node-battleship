@@ -52,6 +52,7 @@ export default class ShipView implements IRenderable {
 
 		this.sceneObject.on('dragstart', () => {
 			this.owner.selectShip(this.shipRef);
+			this.updateShipRotation();
 		});
 
 		this.sceneObject.on('drag', () => {

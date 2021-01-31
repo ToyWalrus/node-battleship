@@ -37,6 +37,9 @@ export default class GameScene extends Phaser.Scene {
 		let shipview = new ShipView(testPlayer, new Ship({ length: 3 }), Assets.Cruiser);
 		shipview.render(this, { x: 900, y: 300 }, scale);
 
+		let shipview2 = new ShipView(testPlayer, new Ship({ length: 2 }), Assets.Submarine);
+		shipview2.render(this, { x: 900, y: 500 }, scale);
+
 		let gridView = new GridView(new Grid(), this.battleshipGame, testPlayer);
 		gridView.render(this, { x: 300, y: 300 }, scale);
 	}

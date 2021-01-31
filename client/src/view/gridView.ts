@@ -8,6 +8,7 @@ import Game from '../model/game';
 import { GridSquareDimensions } from '../utils/constants';
 import ShipView from './shipView';
 import Player from '../model/Player';
+import { Math } from 'phaser';
 
 export default class GridView implements IRenderable {
 	gameRef: Game;
@@ -15,6 +16,7 @@ export default class GridView implements IRenderable {
 	gridSquares: Map<string, GridSquareView>;
 	isActive: boolean;
 	owner: Player;
+	scale: number;
 
 	previousDragOriginCoordinate: Coordinate;
 	previousFacingDirection: Direction;
@@ -33,6 +35,7 @@ export default class GridView implements IRenderable {
 	}
 
 	render(scene: Phaser.Scene, gridCenter: Vector2, scale: number) {
+		this.scale = scale;
 		let grid = scene.add.image(gridCenter.x, gridCenter.y, Assets.Grid).setScale(scale).setInteractive();
 		const bounds = grid.getBounds();
 		const topLeft = grid.getTopLeft();
@@ -72,7 +75,14 @@ export default class GridView implements IRenderable {
 
 	onShipPlaced(ship: ShipView, originCoordinate: Coordinate): boolean {
 		if (!this.isActive || this.owner !== ship.owner) return false;
-		return ship.shipRef.place(this.gridRef, originCoordinate, ShipView.currentFacingDirection);
+		let success = ship.shipRef.place(this.gridRef, originCoordinate, ShipView.currentFacingDirection);
+		if (success) {
+			console.log('placed ship:');
+			console.log(this.gridRef.toString());
+			// reposition ship within the grid
+			this.alignPlacedShip(ship, originCoordinate);
+		}
+		return success;
 	}
 
 	setActive(active: boolean) {
@@ -148,6 +158,36 @@ export default class GridView implements IRenderable {
 			this.previousFacingDirection = ShipView.currentFacingDirection;
 			this.previousPosition = { x: pointerX, y: pointerY };
 		}
+	}
+
+	alignPlacedShip(ship: ShipView, originCoordinate: Coordinate) {
+		const originBounds = this.getSquare(originCoordinate).bounds;
+		const length = ship.shipRef.length;
+		let additionalShift = 0;
+		if (length % 2 === 0) {
+			// for even-length ships, shift by 1/2 square to line it up
+			// since objects origins are the center
+			additionalShift = GridSquareDimensions.width / 2;
+		}
+		const shiftAmount = Math.CeilTo(length / 2) - 1;
+		const pixelsToShift = (shiftAmount * GridSquareDimensions.width + additionalShift) * this.scale;
+
+		let newShipPos: Vector2;
+		switch (ShipView.currentFacingDirection) {
+			case Direction.Right:
+				newShipPos = { x: originBounds.centerX + pixelsToShift, y: originBounds.centerY };
+				break;
+			case Direction.Up:
+				newShipPos = { x: originBounds.centerX, y: originBounds.centerY - pixelsToShift };
+				break;
+			case Direction.Left:
+				newShipPos = { x: originBounds.centerX - pixelsToShift, y: originBounds.centerY };
+				break;
+			case Direction.Down:
+				newShipPos = { x: originBounds.centerX, y: originBounds.centerY + pixelsToShift };
+				break;
+		}
+		ship.sceneObject.setPosition(newShipPos.x, newShipPos.y);
 	}
 
 	getSquare(coord: Coordinate): GridSquareView {
