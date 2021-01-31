@@ -2,8 +2,7 @@ export enum Assets {
 	Mark = 'Mark',
 	Carrier = 'Carrier',
 	Battleship = 'Battleship',
-	Cruiser = 'Cruiser',
-	Destroyer = 'Destroyer',
+	Destroyer = 'Destroyer', // Destroyer and Cruiser share same asset
 	Submarine = 'Submarine',
 	Grid = 'Grid',
 	Square = 'Square',
@@ -31,7 +30,6 @@ export enum Direction {
 
 export enum GamePhase {
 	Waiting,
-	Setup,
 	Guessing,
 	End,
 }

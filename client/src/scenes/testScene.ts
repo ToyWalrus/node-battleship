@@ -7,12 +7,12 @@ import { Assets, GamePhase } from '../utils/enums';
 import GridView from '../view/gridView';
 import ShipView from '../view/shipView';
 
-export default class GameScene extends Phaser.Scene {
+export default class TestScene extends Phaser.Scene {
 	battleshipGame: Game;
 
 	constructor() {
 		super({
-			key: 'BattleshipGame',
+			key: 'BattleshipGame_Test',
 		});
 	}
 
@@ -21,7 +21,6 @@ export default class GameScene extends Phaser.Scene {
 		this.load.image(Assets.Mark, 'src/assets/Mark.png');
 		this.load.image(Assets.Carrier, 'src/assets/Carrier.png');
 		this.load.image(Assets.Battleship, 'src/assets/Battleship.png');
-		this.load.image(Assets.Cruiser, 'src/assets/Cruiser or Destroyer.png');
 		this.load.image(Assets.Destroyer, 'src/assets/Cruiser or Destroyer.png');
 		this.load.image(Assets.Submarine, 'src/assets/Submarine.png');
 		this.load.image(Assets.Square, 'src/assets/BlankSquare.png');
@@ -31,16 +30,15 @@ export default class GameScene extends Phaser.Scene {
 		const scale = 0.5;
 
 		this.battleshipGame = new Game();
-		this.battleshipGame.manualUpdatePhase(GamePhase.Setup);
 		let testPlayer = new Player({ name: 'test player' });
 
-		let shipview = new ShipView(testPlayer, new Ship({ length: 3 }), Assets.Cruiser);
+		let shipview = new ShipView(testPlayer, new Ship({ length: 3 }), Assets.Destroyer);
 		shipview.render(this, { x: 900, y: 300 }, scale);
 
 		let shipview2 = new ShipView(testPlayer, new Ship({ length: 2 }), Assets.Submarine);
 		shipview2.render(this, { x: 900, y: 500 }, scale);
 
-		let gridView = new GridView(new Grid(), this.battleshipGame, testPlayer);
+		let gridView = new GridView(new Grid(), testPlayer);
 		gridView.render(this, { x: 300, y: 300 }, scale);
 	}
 

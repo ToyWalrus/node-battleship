@@ -15,3 +15,7 @@ export const GridSquareDimensions: Dimensions = {
 	height: 100,
 	width: 100,
 };
+
+export const PluginKeys = {
+	RexUI: 'rexUI',
+};

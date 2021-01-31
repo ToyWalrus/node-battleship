@@ -4,6 +4,7 @@ import Ship from './ship';
 interface PlayerArgs {
 	name?: string;
 	guessedCoordinates?: Coordinate[];
+	ships?: Ship[];
 }
 
 export default class Player {
@@ -22,11 +23,19 @@ export default class Player {
 		return this._name;
 	}
 
-	constructor({ name, guessedCoordinates }: PlayerArgs) {
-		this._name = name || 'Player';
-		this._guessedCoordinates = guessedCoordinates || [];
-		this._ships = [];
+	constructor(args?: PlayerArgs) {
+		this._name = args?.name || 'Player';
+		this._guessedCoordinates = args?.guessedCoordinates || [];
+		this._ships = args?.ships || [];
 		this._selectedShip = null;
+	}
+
+	setName(name: string): void {
+		this._name = name;
+	}
+
+	setShips(ships: Ship[]) {
+		this._ships = ships;
 	}
 
 	selectShip(ship: Ship): void {
@@ -56,5 +65,9 @@ export default class Player {
 
 	allShipsAreSunk(): boolean {
 		return this._ships.length > 0 && this._ships.every((s) => s.isSunk);
+	}
+
+	allShipsArePlaced(): boolean {
+		return this._ships.length > 0 && this._ships.every((s) => s.hasBeenPlaced);
 	}
 }

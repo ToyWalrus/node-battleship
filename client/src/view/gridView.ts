@@ -4,14 +4,12 @@ import { Vector2, IRenderable } from '../utils/interfaces';
 import { Assets, Direction, GamePhase } from '../utils/enums';
 import GridSquareView from './gridSquareView';
 import { coordinateIsInList, loopThroughGrid } from '../utils/functions';
-import Game from '../model/game';
 import { GridSquareDimensions } from '../utils/constants';
 import ShipView from './shipView';
 import Player from '../model/Player';
 import { Math } from 'phaser';
 
 export default class GridView implements IRenderable {
-	gameRef: Game;
 	gridRef: Grid;
 	gridSquares: Map<string, GridSquareView>;
 	isActive: boolean;
@@ -22,9 +20,8 @@ export default class GridView implements IRenderable {
 	previousFacingDirection: Direction;
 	previousPosition: Vector2;
 
-	constructor(grid: Grid, game: Game, owner: Player) {
+	constructor(grid: Grid, owner?: Player) {
 		this.gridRef = grid;
-		this.gameRef = game;
 		this.owner = owner;
 		this.gridSquares = new Map<string, GridSquareView>();
 		this.isActive = true;
@@ -32,6 +29,10 @@ export default class GridView implements IRenderable {
 			this.gridSquares.set(coord.toString(), new GridSquareView(coord, this));
 			return false;
 		});
+	}
+
+	setOwner(owner: Player) {
+		this.owner = owner;
 	}
 
 	render(scene: Phaser.Scene, gridCenter: Vector2, scale: number) {
@@ -99,7 +100,6 @@ export default class GridView implements IRenderable {
 
 	highlightAllSquaresUnderDraggedShip(bounds: Phaser.Geom.Rectangle, pointerX: number, pointerY: number) {
 		if (
-			this.gameRef.currentPhase === GamePhase.Setup &&
 			this.owner?.hasSelectedShip &&
 			pointerX !== null &&
 			pointerY !== null &&

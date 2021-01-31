@@ -40,9 +40,10 @@ export default class Game {
 	startGame(): boolean {
 		if (this.players.length < 2) {
 			console.warn('Not enough players to start game!');
+			this._phase = GamePhase.Waiting;
 			return false;
 		}
-		this._phase = GamePhase.Setup;
+		this._phase = GamePhase.Guessing;
 		return true;
 	}
 
@@ -63,7 +64,7 @@ export default class Game {
 
 	gridSquareClicked(player: Player, grid: Grid, coordinate: Coordinate): boolean {
 		switch (this._phase) {
-			case GamePhase.Setup:
+			case GamePhase.Waiting:
 				break;
 			case GamePhase.Guessing:
 				if (this.isPlayerTurn(player) && grid !== this.getGridFor(player)) {
