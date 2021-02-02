@@ -1,12 +1,12 @@
-import Coordinate from '../model/coordinate';
-import Grid from '../model/grid';
-import { Vector2, IRenderable } from '../utils/interfaces';
-import { Assets, Direction, GamePhase } from '../utils/enums';
+import Coordinate from '../../../shared/model/coordinate';
+import Grid from '../../../shared/model/grid';
+import { Vector2, IRenderable } from '../../../shared/utils/interfaces';
+import { Assets, Direction, GamePhase } from '../../../shared/utils/enums';
 import GridSquareView from './gridSquareView';
-import { coordinateIsInList, loopThroughGrid } from '../utils/functions';
-import { GridSquareDimensions } from '../utils/constants';
+import { coordinateIsInList, loopThroughGrid } from '../../../shared/utils/functions';
+import { GridSquareDimensions } from '../../../shared/utils/constants';
 import ShipView from './shipView';
-import Player from '../model/Player';
+import Player from '../../../shared/model/Player';
 import { Math } from 'phaser';
 
 export default class GridView implements IRenderable {

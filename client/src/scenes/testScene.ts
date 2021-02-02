@@ -1,9 +1,9 @@
-import Game from '../model/game';
-import Grid from '../model/grid';
-import Player from '../model/Player';
-import Ship from '../model/ship';
-import { CanvasDimensions, GridImageDimensions } from '../utils/constants';
-import { Assets, GamePhase } from '../utils/enums';
+import Game from '../../../shared/model/game';
+import Grid from '../../../shared/model/grid';
+import Player from '../../../shared/model/Player';
+import Ship from '../../../shared/model/ship';
+import { CanvasDimensions, GridImageDimensions } from '../../../shared/utils/constants';
+import { Assets, GamePhase } from '../../../shared/utils/enums';
 import GridView from '../view/gridView';
 import ShipView from '../view/shipView';
 

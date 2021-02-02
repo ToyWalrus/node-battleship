@@ -1,10 +1,10 @@
-import Game from '../model/game';
-import Grid from '../model/grid';
-import Player from '../model/Player';
-import Ship from '../model/ship';
-import { CanvasDimensions, GridImageDimensions, PluginKeys } from '../utils/constants';
-import { Assets, GamePhase } from '../utils/enums';
-import { Vector2 } from '../utils/interfaces';
+import Game from '../../../shared/model/game';
+import Grid from '../../../shared/model/grid';
+import Player from '../../../shared/model/Player';
+import Ship from '../../../shared/model/ship';
+import { CanvasDimensions, GridImageDimensions, PluginKeys } from '../../../shared/utils/constants';
+import { Assets, GamePhase } from '../../../shared/utils/enums';
+import { Vector2 } from '../../../shared/utils/interfaces';
 import GridView from '../view/gridView';
 import ShipView from '../view/shipView';
 import { io, Socket } from 'socket.io-client';
@@ -79,6 +79,12 @@ export default class SetupScene extends Phaser.Scene {
 		this.socket.on('connect', () => {
 			console.log('Connected!');
 		});
+
+		this.socket.on('isPlayerA', () => {
+			console.log('I am the first player!');
+		});
+
+		// this.socket.emit('...')
 	}
 
 	drawHeaderText(text: string, position: Vector2) {

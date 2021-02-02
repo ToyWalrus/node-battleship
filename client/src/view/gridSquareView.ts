@@ -1,7 +1,7 @@
-import Coordinate from '../model/coordinate';
-import { GridSquareDimensions } from '../utils/constants';
-import { Assets } from '../utils/enums';
-import { IRenderable, Vector2 } from '../utils/interfaces';
+import Coordinate from '../../../shared/model/coordinate';
+import { GridSquareDimensions } from '../../../shared/utils/constants';
+import { Assets } from '../../../shared/utils/enums';
+import { IRenderable, Vector2 } from '../../../shared/utils/interfaces';
 import GridView from './gridView';
 import ShipView from './shipView';
 

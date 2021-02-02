@@ -1,8 +1,8 @@
-import Coordinate from '../model/coordinate';
-import Player from '../model/Player';
-import Ship from '../model/ship';
-import { Direction } from '../utils/enums';
-import { IRenderable, Vector2 } from '../utils/interfaces';
+import Coordinate from '../../../shared/model/coordinate';
+import Player from '../../../shared/model/Player';
+import Ship from '../../../shared/model/ship';
+import { Direction } from '../../../shared/utils/enums';
+import { IRenderable, Vector2 } from '../../../shared/utils/interfaces';
 import GridSquareView from './gridSquareView';
 
 export default class ShipView implements IRenderable {

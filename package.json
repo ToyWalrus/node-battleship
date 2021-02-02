@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server/server.js"
+    "start-server": "nodemon server/server.js",
+    "start-client": "cd client/ && npm start"   
   },
   "repository": {
     "type": "git",

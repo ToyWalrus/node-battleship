@@ -2,7 +2,7 @@ import * as Phaser from 'phaser';
 import RexUIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin';
 import SetupScene from './scenes/setupScene';
 import TestScene from './scenes/testScene';
-import { CanvasDimensions, PluginKeys } from './utils/constants';
+import { CanvasDimensions, PluginKeys } from '../../shared/utils/constants';
 
 const config: Phaser.Types.Core.GameConfig = {
 	type: Phaser.AUTO,
