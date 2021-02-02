@@ -7,12 +7,14 @@ import { Assets, GamePhase } from '../utils/enums';
 import { Vector2 } from '../utils/interfaces';
 import GridView from '../view/gridView';
 import ShipView from '../view/shipView';
+import { io, Socket } from 'socket.io-client';
 
 export default class SetupScene extends Phaser.Scene {
 	battleshipGame: Game;
 	localPlayer: Player;
 	playerGrid: Grid;
 	playerShips: Ship[];
+	socket: Socket;
 
 	private _hexBlack = 0x222222;
 	private _labelFontColor = '#222222';
@@ -68,6 +70,15 @@ export default class SetupScene extends Phaser.Scene {
 				50
 			)
 		);
+
+		this.setupSocketIO();
+	}
+
+	setupSocketIO() {
+		this.socket = io('http://localhost:3000');
+		this.socket.on('connect', () => {
+			console.log('Connected!');
+		});
 	}
 
 	drawHeaderText(text: string, position: Vector2) {
