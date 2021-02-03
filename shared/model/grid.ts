@@ -1,4 +1,5 @@
-﻿import Coordinate from './coordinate';
+﻿import { v4 as UuidV4 } from 'uuid';
+import Coordinate from './coordinate';
 import GridSquare from './gridSquare';
 
 interface GridArgs {
@@ -6,7 +7,12 @@ interface GridArgs {
 }
 
 export default class Grid {
-	private board: Map<string, GridSquare>;
+	private board: Map<string, GridSquare>; // TODO: will need serialization
+	private _id: string;
+
+	get id(): string {
+		return this._id;
+	}
 
 	constructor(args?: GridArgs) {
 		if (args?.board != null) {
@@ -20,6 +26,7 @@ export default class Grid {
 				}
 			}
 		}
+		this._id = UuidV4();
 	}
 
 	get(coordinate: Coordinate): GridSquare {

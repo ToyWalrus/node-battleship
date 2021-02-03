@@ -1,4 +1,5 @@
-﻿import Coordinate from './coordinate';
+﻿import { v4 as UuidV4 } from 'uuid';
+import Coordinate from './coordinate';
 import Ship from './ship';
 
 interface PlayerArgs {
@@ -12,7 +13,11 @@ export default class Player {
 	private _guessedCoordinates: Coordinate[];
 	private _selectedShip: Ship;
 	private _ships: Ship[];
+	private _id: string;
 
+	get id(): string {
+		return this._id;
+	}
 	get selectedShip(): Ship {
 		return this._selectedShip;
 	}
@@ -28,6 +33,7 @@ export default class Player {
 		this._guessedCoordinates = args?.guessedCoordinates || [];
 		this._ships = args?.ships || [];
 		this._selectedShip = null;
+		this._id = UuidV4();
 	}
 
 	setName(name: string): void {

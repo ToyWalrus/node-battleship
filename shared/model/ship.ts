@@ -1,4 +1,5 @@
-﻿import { Direction } from '../utils/enums';
+﻿import { v4 as UuidV4 } from 'uuid';
+import { Direction } from '../utils/enums';
 import { coordinateIsInList } from '../utils/functions';
 import Coordinate from './coordinate';
 import Grid from './grid';
@@ -16,7 +17,14 @@ export default class Ship {
 	private _gridRef: Grid;
 	private _length: integer;
 	private _hasBeenPlaced: boolean;
+	private _id: string;
 
+	get id(): string {
+		if (!this._id) {
+			this._id = UuidV4();
+		}
+		return this._id;
+	}
 	get hasBeenPlaced(): boolean {
 		return this._hasBeenPlaced;
 	}
