@@ -2,15 +2,22 @@
 import Coordinate from './coordinate';
 import GridSquare from './gridSquare';
 
+interface GridMap {
+	[coordinate: string]: GridSquare;
+}
+
 interface GridArgs {
-	board?: Map<string, GridSquare>;
+	board?: GridMap;
 }
 
 export default class Grid {
-	private board: Map<string, GridSquare>; // TODO: will need serialization
+	private board: GridMap;
 	private _id: string;
 
 	get id(): string {
+		if (!this._id) {
+			this._id = UuidV4();
+		}
 		return this._id;
 	}
 
@@ -18,19 +25,18 @@ export default class Grid {
 		if (args?.board != null) {
 			this.board = args.board;
 		} else {
-			this.board = new Map<string, GridSquare>();
+			this.board = {};
 			for (let col = 1; col <= 10; ++col) {
 				for (let row = 1; row <= 10; ++row) {
 					let current = new Coordinate(row, col);
-					this.board.set(current.toString(), new GridSquare(current));
+					this.board[current.toString()] = new GridSquare(current);
 				}
 			}
 		}
-		this._id = UuidV4();
 	}
 
 	get(coordinate: Coordinate): GridSquare {
-		return this.board.get(coordinate.toString());
+		return this.board[coordinate.toString()];
 	}
 
 	toString(): string {

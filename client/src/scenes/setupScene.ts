@@ -75,14 +75,18 @@ export default class SetupScene extends Phaser.Scene {
 	}
 
 	setupSocketIO() {
-		this.socket = io('http://localhost:3000');
-		this.socket.on('connect', () => {
-			console.log('Connected!');
-		});
+		// this.socket = io('http://localhost:3000');
+		// this.socket.on('connect', () => {
+		// 	console.log('Connected!');
+		// });
 
-		this.socket.on('isPlayerA', () => {
-			console.log('I am the first player!');
-		});
+		// this.socket.on('isPlayerA', () => {
+		// 	console.log('I am the first player!');
+		// });
+
+		var g = new Game();
+		g.addPlayer(new Player({ name: 'bruh dude' }), new Grid());
+		console.log(JSON.stringify(g));
 
 		// this.socket.emit('...')
 	}

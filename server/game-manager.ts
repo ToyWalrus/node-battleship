@@ -27,6 +27,7 @@ export default class GameManager {
 		this.games = new Map<string, Game>();
 		this.debugLog = debugLog;
 
+		// Set up the callback for when players connect to the server
 		io.on(CONNECTION, this.playerConnected);
 	}
 
@@ -44,7 +45,7 @@ export default class GameManager {
 		const game = this.games.get(roomId);
 
 		if (game.startGame()) {
-			this.broadcastEvent(GAME_STARTED, { game }, roomId);
+			this._broadcastEvent(GAME_STARTED, { game }, roomId);
 		} else {
 			this._warn('Game has already started!', { roomId, game });
 		}
@@ -66,7 +67,7 @@ export default class GameManager {
 			}
 
 			game.endCurrentTurn();
-			this.broadcastEvent(UPDATE_GAME, { game }, args.roomId);
+			this._broadcastEvent(UPDATE_GAME, { game }, args.roomId);
 		} catch (e) {
 			this._log('Clicking square failed: ', e);
 		}
@@ -76,6 +77,7 @@ export default class GameManager {
 	//   CONNECTION LOGIC
 	// ====================
 
+	// Happens when a player registers with the server
 	playerConnected(socket: Socket): void {
 		this._log('User connected! ', socket);
 		this.playerConnections.set(socket, null);
@@ -87,20 +89,25 @@ export default class GameManager {
 		socket.on(CLICK_SQUARE, this.clickSquare);
 	}
 
+	// Happens when a player is... you know... disconnected
 	playerDisconnected(socket: Socket): void {
 		this._log('User disconnected! ', socket);
 		this.playerConnections.delete(socket);
 	}
 
+	// Happens when a player has clicked "Join Game" after placing their ships
 	playerJoinedGame(socket: Socket, args: JoinGameArgs): void {
 		if (!args) {
 			this._warn('Player joined game but no arguments were sent');
 			return;
 		}
+
+		// Join the room
 		const roomId = args.roomId;
 		this.playerConnections.set(socket, roomId);
 		socket.join(roomId);
 
+		// Create game/check game status
 		let game = this.games.get(roomId);
 		if (!game) {
 			game = new Game();
@@ -111,13 +118,15 @@ export default class GameManager {
 			return;
 		}
 
+		// Register player to game
 		game.addPlayer(args.player, args.grid);
 		if (game.players.length === 2) {
-			this.broadcastEvent(GAME_READY, null, roomId);
+			// Tell clients everything is ready
+			this._broadcastEvent(GAME_READY, null, roomId);
 		}
 	}
 
-	broadcastEvent(event: string, args: any, roomId: string): void {
+	_broadcastEvent(event: string, args: any, roomId: string): void {
 		if (!this.games.has(roomId)) {
 			this._warn(`There is no room with id ${roomId} to broadcast to!`);
 			return;

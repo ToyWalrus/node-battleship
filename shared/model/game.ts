@@ -3,20 +3,26 @@ import Coordinate from './coordinate';
 import Grid from './grid';
 import Player from './Player';
 
+interface PlayerIdToGridId {
+	[id: string]: string;
+}
+interface PlayerIdToPlayer {
+	[id: string]: Player;
+}
+interface GridIdToGrid {
+	[id: string]: Grid;
+}
+
 export default class Game {
-	private _playerIdToGridId: Map<string, string>;
-	private _players: Map<string, Player>;
-	private _grids: Map<string, Grid>;
+	private _playerIdToGridId: PlayerIdToGridId;
+	private _players: PlayerIdToPlayer;
+	private _grids: GridIdToGrid;
 	private _currentPlayerTurn: number;
 	private _phase: GamePhase;
 
 	get players(): Player[] {
-		if (this._players.size == 0) return [];
-		let players: Player[] = [];
-		for (const entry of this._players) {
-			players.push(entry[1]);
-		}
-		return players;
+		if (Object.keys(this._players).length === 0) return [];
+		return Object.values(this._players);
 	}
 	get currentPlayer(): Player {
 		return this.players[this.currentPlayerTurn];
@@ -33,9 +39,9 @@ export default class Game {
 
 	constructor(startPlayerTurn = 0) {
 		this._currentPlayerTurn = startPlayerTurn;
-		this._playerIdToGridId = new Map<string, string>();
-		this._players = new Map<string, Player>();
-		this._grids = new Map<string, Grid>();
+		this._playerIdToGridId = {};
+		this._players = {};
+		this._grids = {};
 		this._phase = GamePhase.Waiting;
 	}
 
@@ -56,17 +62,17 @@ export default class Game {
 	}
 
 	getGridFor(player: Player): Grid | null {
-		if (this._playerIdToGridId.has(player.id)) {
-			const gridId = this._playerIdToGridId.get(player.id);
-			return this._grids.get(gridId);
+		if (this._playerIdToGridId[player.id]) {
+			const gridId = this._playerIdToGridId[player.id];
+			return this._grids[gridId];
 		}
 		return null;
 	}
 
 	addPlayer(player: Player, grid: Grid): void {
-		this._playerIdToGridId.set(player.id, grid.id);
-		this._players.set(player.id, player);
-		this._grids.set(grid.id, grid);
+		this._playerIdToGridId[player.id] = grid.id;
+		this._players[player.id] = player;
+		this._grids[grid.id] = grid;
 	}
 
 	isPlayerTurn(player: Player): boolean {
