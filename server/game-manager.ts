@@ -11,6 +11,7 @@ import {
 	UPDATE_GAME,
 } from '../shared/communication-methods';
 import Game from '../shared/model/game';
+import Grid from '../shared/model/grid';
 import Player from '../shared/model/Player';
 
 const CONNECTION = 'connection';
@@ -61,12 +62,14 @@ export default class GameManager {
 		const roomId = args.roomId;
 		const game = this.games.get(roomId);
 		try {
-			const success = game.gridSquareClicked(args.sendingPlayer, args.grid, args.coordinate);
+			const player = Player.fromJSON(args.sendingPlayer);
+			const grid = Grid.fromJson(args.grid);
+			const success = game.gridSquareClicked(player, grid, args.coordinate);
 
 			if (success) {
-				this._log(`${args.sendingPlayer.name} guessed a spot with a ship!`);
+				this._log(`${player.name} guessed a spot with a ship!`);
 			} else {
-				this._log(`${args.sendingPlayer.name} guessed a spot without a ship`);
+				this._log(`${player.name} guessed a spot without a ship`);
 			}
 
 			game.endCurrentTurn();
@@ -107,14 +110,15 @@ export default class GameManager {
 
 		// Check the room
 		const roomId = args.roomId;
+		const player = Player.fromJSON(args.player);
 		if (socket.rooms.has(roomId)) {
-			this._warn(`Player (${args.player.name}) has already joined "${roomId}"`);
+			this._warn(`Player (${player.name}) has already joined "${roomId}"`);
 			clientJoinGameCallback(false);
 			return;
 		} else if (this.playerConnections.get(socket) && this.playerConnections.get(socket) !== roomId) {
 			this._warn(
 				`Player (${
-					args.player.name
+					player.name
 				}) is trying to game hop over into "${roomId}"! (From ${this.playerConnections.get(socket)})`
 			);
 			clientJoinGameCallback(false);
@@ -134,13 +138,14 @@ export default class GameManager {
 		}
 
 		// Join the room
-		this._log(`Player (${args.player.name}) joined game "${args.roomId}"!`);
+		this._log(`Player (${player.name}) joined game "${args.roomId}"!`);
 		this.playerConnections.set(socket, roomId);
 		socket.join(roomId);
 		clientJoinGameCallback(true);
 
 		// Register player to game
-		game.addPlayer(args.player, args.grid);
+		const grid = Grid.fromJson(args.grid);
+		game.addPlayer(player, grid);
 		if (game.players.length === 2) {
 			// Tell clients everything is ready
 			this._broadcastEvent(GAME_READY, null, roomId);

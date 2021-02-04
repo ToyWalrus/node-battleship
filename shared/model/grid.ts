@@ -62,6 +62,7 @@ export default class Grid {
 	}
 
 	static fromJson(json: object): Grid {
+		if (!json) return null;
 		let grid = new Grid();
 		grid._id = json['_id'];
 		grid._board = {};

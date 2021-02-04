@@ -76,6 +76,7 @@ export default class Player {
 	}
 
 	static fromJSON(json: object): Player {
+		if (!json) return null;
 		let player = new Player();
 		player._id = json['_id'];
 		player._name = json['_name'];

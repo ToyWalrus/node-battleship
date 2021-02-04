@@ -3,14 +3,14 @@ import Math from '../utils/math';
 
 export default class Coordinate {
 	row: Row;
-	col: integer;
+	col: number;
 
-	constructor(row: Row, col: integer) {
+	constructor(row: Row, col: number) {
 		this.row = row;
 		this.col = col;
 	}
 
-	offsetBy(colOffset: integer, rowOffset: integer): Coordinate {
+	offsetBy(colOffset: number, rowOffset: number): Coordinate {
 		return new Coordinate(Math.Clamp(this.row + rowOffset, 1, 10), Math.Clamp(this.col + colOffset, 1, 10));
 	}
 
@@ -25,6 +25,7 @@ export default class Coordinate {
 	}
 
 	static fromJson(json: object): Coordinate {
+		if (!json) return null;
 		return new Coordinate(json['row'], json['col']);
 	}
 }

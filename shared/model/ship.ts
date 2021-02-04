@@ -1,11 +1,10 @@
 ﻿import { v4 as UuidV4 } from 'uuid';
-import { Direction } from '../utils/enums';
 import { coordinateIsInList } from '../utils/functions';
 import Coordinate from './coordinate';
 import Grid from './grid';
 
 interface ShipArgs {
-	length: integer;
+	length: number;
 	coordinates?: Coordinate[];
 	damage?: Coordinate[];
 	grid?: Grid;
@@ -14,7 +13,7 @@ interface ShipArgs {
 export default class Ship {
 	private _coordinates: Coordinate[];
 	private _damage: Coordinate[];
-	private _length: integer;
+	private _length: number;
 	private _id: string;
 
 	get id(): string {
@@ -26,7 +25,7 @@ export default class Ship {
 	get isSunk(): boolean {
 		return this._damage.length == this._length;
 	}
-	get length(): integer {
+	get length(): number {
 		return this._length;
 	}
 	get coordinates(): Coordinate[] {
@@ -64,6 +63,7 @@ export default class Ship {
 	}
 
 	static fromJson(json: object): Ship {
+		if (!json) return null;
 		let ship = new Ship({ length: json['_length'] });
 		ship._id = json['_id'];
 		ship._coordinates = (json['_coordinates'] as object[]).map(Coordinate.fromJson);

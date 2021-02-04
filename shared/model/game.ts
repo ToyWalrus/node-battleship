@@ -103,6 +103,7 @@ export default class Game {
 	}
 
 	static fromJson(json: object): Game {
+		if (!json) return null;
 		let game = new Game();
 		game._phase = json['_phase'];
 		game._players = {};

@@ -18,6 +18,7 @@ export default class SetupScene extends Phaser.Scene {
 	playerShipRefs: Ship[];
 	socket: Socket;
 	playerNameInput: Phaser.GameObjects.Text;
+	roomIdInput: Phaser.GameObjects.Text;
 
 	private _hexBlack = 0x222222;
 	private _labelFontColor = '#222222';
@@ -51,6 +52,7 @@ export default class SetupScene extends Phaser.Scene {
 
 	create() {
 		const scale = 0.5;
+		this.socket = io(ServerInfo.hostname + ':' + ServerInfo.port);
 
 		const headerText = 'Place Your Ships!';
 		this.drawHeaderText(headerText, { x: CanvasDimensions.width / 2 - (headerText.length / 4) * 40, y: 10 });
@@ -66,6 +68,10 @@ export default class SetupScene extends Phaser.Scene {
 			x: CanvasDimensions.width - CanvasDimensions.width / 4,
 			y: CanvasDimensions.height / 4,
 		});
+		this.drawRoomIdInputField({
+			x: CanvasDimensions.width - CanvasDimensions.width / 4,
+			y: (CanvasDimensions.height * 1.5) / 4,
+		});
 		this.drawJoinButton(
 			new Phaser.Geom.Rectangle(
 				CanvasDimensions.width - CanvasDimensions.width / 4,
@@ -74,12 +80,6 @@ export default class SetupScene extends Phaser.Scene {
 				50
 			)
 		);
-
-		this.setupSocketIO();
-	}
-
-	setupSocketIO() {
-		this.socket = io(ServerInfo.hostname + ':' + ServerInfo.port);
 	}
 
 	drawHeaderText(text: string, position: Vector2) {
@@ -159,7 +159,6 @@ export default class SetupScene extends Phaser.Scene {
 			.setInteractive();
 
 		buttonRect.on('pointerover', () => {
-			console.log(this.playerNameInput);
 			this.localPlayer.setName(this.playerNameInput.text);
 			if (!this._canJoinGame) return;
 			button.fillColor = 0x555555;
@@ -178,7 +177,7 @@ export default class SetupScene extends Phaser.Scene {
 				{
 					player: this.localPlayer,
 					grid: this.playerGrid,
-					roomId: 'game',
+					roomId: this.roomIdInput.text,
 				} as JoinGameArgs,
 				(wasAcceptedIntoGame: boolean) => {
 					if (wasAcceptedIntoGame) {
@@ -200,7 +199,7 @@ export default class SetupScene extends Phaser.Scene {
 		});
 
 		this.playerNameInput = this.add
-			.text(labelPosition.x, labelPosition.y + 30, '', {
+			.text(labelPosition.x, labelPosition.y + 30, 'Player', {
 				fixedWidth: 200,
 				fixedHeight: 30,
 				color: this._accentFontColor,
@@ -210,6 +209,27 @@ export default class SetupScene extends Phaser.Scene {
 
 		this.playerNameInput.on('pointerdown', () => {
 			this[PluginKeys.RexUI].edit(this.playerNameInput);
+		});
+	}
+
+	drawRoomIdInputField(position: Vector2) {
+		this.add.text(position.x, position.y, 'Room Id', {
+			color: this._labelFontColor,
+			fontSize: '22px',
+			fontStyle: 'bold',
+		});
+
+		this.roomIdInput = this.add
+			.text(position.x, position.y + 30, 'game', {
+				fixedWidth: 200,
+				fixedHeight: 30,
+				color: this._accentFontColor,
+				backgroundColor: this._labelFontColor,
+			})
+			.setInteractive();
+
+		this.roomIdInput.on('pointerdown', () => {
+			this[PluginKeys.RexUI].edit(this.roomIdInput);
 		});
 	}
 
@@ -232,7 +252,9 @@ export default class SetupScene extends Phaser.Scene {
 		return (
 			this.localPlayer.name !== null &&
 			this.localPlayer.name !== '' &&
-			this.playerShips.every((s) => s.hasBeenPlaced)
+			this.playerShips.every((s) => s.hasBeenPlaced) &&
+			this.roomIdInput.text !== null &&
+			this.roomIdInput.text !== ''
 		);
 	}
 }
