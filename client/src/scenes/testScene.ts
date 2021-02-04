@@ -51,7 +51,7 @@ export default class TestScene extends Phaser.Scene {
 			.text(700, 600, 'Guess random coordinate', { color: '#000000' })
 			.setInteractive()
 			.on('pointerdown', () => {
-				this.clickSquare(this.grid, Coordinate.random());
+				// this.clickSquare(this.grid, Coordinate.random());
 			});
 	}
 
