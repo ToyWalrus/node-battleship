@@ -30,6 +30,7 @@ export interface ClickSquareArgs {
 
 export const GAME_READY = 'GAME_READY';
 export const GAME_STARTED = 'GAME_STARTED';
+export const PLAYER_LEAVE = 'PLAYER_LEAVE';
 export const UPDATE_GAME = 'UPDATE_GAME';
 export interface UpdateGameArgs {
 	game: Game;

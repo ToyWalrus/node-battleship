@@ -77,8 +77,10 @@ export default class GridView implements IRenderable {
 	updateGridRef(grid: Grid): void {
 		this.gridRef = grid;
 
-		for (const coord of grid.markedSquares) {
-			this.getSquare(coord).markSquare(grid.get(coord).hasShip);
+		if (grid) {
+			for (const coord of grid.markedSquares) {
+				this.getSquare(coord).markSquare(grid.get(coord).hasShip);
+			}
 		}
 	}
 
@@ -94,8 +96,8 @@ export default class GridView implements IRenderable {
 		if (!this.isActive || this.owner !== ship.owner) return false;
 		let success = ship.place(this, originCoordinate);
 		if (success) {
-			console.log('placed ship:');
-			console.log(this.gridRef.toString());
+			// console.log('placed ship:');
+			// console.log(this.gridRef.toString());
 			// reposition ship within the grid
 			this.alignPlacedShip(ship, originCoordinate);
 			this.unhighlightAllSquares();

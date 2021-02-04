@@ -6,10 +6,12 @@ import {
 	GAME_STARTED,
 	JoinGameArgs,
 	JOIN_GAME,
+	PLAYER_LEAVE,
 	StartGameArgs,
 	START_GAME,
 	UPDATE_GAME,
-} from '../shared/communication-methods';
+} from '../shared/communications';
+import Coordinate from '../shared/model/coordinate';
 import Game from '../shared/model/game';
 import Grid from '../shared/model/grid';
 import Player from '../shared/model/Player';
@@ -49,7 +51,7 @@ export default class GameManager {
 		if (game.startGame()) {
 			this._broadcastEvent(GAME_STARTED, { game }, roomId);
 		} else {
-			this._warn('Game has already started!', { roomId, game });
+			this._warn('Could not start game (maybe it has already started?)', { roomId, game });
 		}
 	}
 
@@ -64,7 +66,8 @@ export default class GameManager {
 		try {
 			const player = Player.fromJSON(args.sendingPlayer);
 			const grid = Grid.fromJson(args.grid);
-			const success = game.gridSquareClicked(player, grid, args.coordinate);
+			const coord = Coordinate.fromJson(args.coordinate);
+			const success = game.gridSquareClicked(player, grid, coord);
 
 			if (success) {
 				this._log(`${player.name} guessed a spot with a ship!`);
@@ -98,8 +101,24 @@ export default class GameManager {
 	// Happens when a player is... you know... disconnected
 	playerDisconnected(socket: Socket): void {
 		this._log('User disconnected! ', socket.id);
-		// TODO: destroy room when a player leaves
+		const roomId = this.playerConnections.get(socket);
+		let hasAnyoneLeft = false;
+		for (const room of this.playerConnections.values()) {
+			if (room === roomId) {
+				hasAnyoneLeft = true;
+				break;
+			}
+		}
+
+		socket.leave(roomId);
 		this.playerConnections.delete(socket);
+
+		this._broadcastEvent(PLAYER_LEAVE, null, roomId);
+
+		if (!hasAnyoneLeft) {
+			this._log(`All players have left "${roomId}", deleting game...`);
+			this.games.delete(roomId);
+		}
 	}
 
 	// Happens when a player has clicked "Join Game" after placing their ships
@@ -139,14 +158,14 @@ export default class GameManager {
 		}
 
 		// Join the room
-		this._log(`Player (${player.name}) joined game "${args.roomId}"!`);
 		this.playerConnections.set(socket, roomId);
 		socket.join(roomId);
 		clientJoinGameCallback(true);
-
+		
 		// Register player to game
 		const grid = Grid.fromJson(args.grid);
 		game.addPlayer(player, grid);
+		this._log(`Player (${player.name}) joined game "${args.roomId}"! (Current player count: ${game.players.length})`);
 		if (game.players.length === 2) {
 			// Tell clients everything is ready
 			this._broadcastEvent(GAME_READY, null, roomId);
@@ -158,7 +177,7 @@ export default class GameManager {
 			this._warn(`There is no room with id ${roomId} to broadcast to!`);
 			return;
 		}
-		this._log(`Broadcasting '${event}' to '${roomId}' with args: `, args);
+		this._log(`Broadcasting "${event}" to "${roomId}" with args: `, args);
 		this.io.to(roomId).emit(event, args);
 	}
 

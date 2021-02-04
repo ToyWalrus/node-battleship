@@ -1,4 +1,4 @@
-import { JoinGameArgs, JOIN_GAME, ServerInfo } from '../../../shared/communication-methods';
+import { JoinGameArgs, JOIN_GAME, ServerInfo } from '../../../shared/communications';
 import Game from '../../../shared/model/game';
 import Grid from '../../../shared/model/grid';
 import Player from '../../../shared/model/Player';

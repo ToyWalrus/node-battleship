@@ -9,13 +9,15 @@ import {
 	CLICK_SQUARE,
 	GAME_READY,
 	GAME_STARTED,
+	PLAYER_LEAVE,
 	StartGameArgs,
 	START_GAME,
 	UpdateGameArgs,
 	UPDATE_GAME,
-} from '../../../shared/communication-methods';
+} from '../../../shared/communications';
 import { CanvasDimensions, GridImageDimensions } from '../../../shared/utils/constants';
 import Coordinate from '../../../shared/model/coordinate';
+import SetupScene from './setupScene';
 
 export interface GameSceneArgs {
 	localPlayer: Player;
@@ -33,7 +35,6 @@ export default class GameScene extends Phaser.Scene {
 	args: GameSceneArgs;
 	socket: Socket;
 	gameRef: Game;
-	gameReady: boolean;
 	sceneObjects: {
 		[key: string]: Phaser.GameObjects.GameObject;
 	};
@@ -63,16 +64,17 @@ export default class GameScene extends Phaser.Scene {
 		this.load.image(Assets.Submarine, 'src/assets/Submarine.png');
 		this.load.image(Assets.Square, 'src/assets/BlankSquare.png');
 		this.load.image(Assets.Mark, 'src/assets/Mark.png');
-		this.gameReady = false;
 
 		this.sceneObjects = {};
 
 		this.args = (this.scene?.settings?.data || {}) as GameSceneArgs;
 		this.socket = this.args?.socket;
 		if (this.socket) {
+			this.socket.on(PLAYER_LEAVE, () => {
+				this.scene.start(SetupScene.key);
+			});
 			this.socket.on(GAME_READY, () => {
 				// might be a race condition here
-				this.gameReady = true;
 				this.drawOrDestroyStartGameButton();
 				this.drawOpponentGrid();
 			});
@@ -117,7 +119,7 @@ export default class GameScene extends Phaser.Scene {
 				scale
 			);
 		} else {
-			console.log('local player: ', this.localPlayer);
+			console.log('local player grid: ', this.gameRef.getGridFor(this.localPlayer).toString());
 			this.localGrid.updateGridRef(this.gameRef.getGridFor(this.localPlayer));
 		}
 		this.localGrid.setActive(false);
@@ -145,24 +147,25 @@ export default class GameScene extends Phaser.Scene {
 				scale
 			);
 		} else {
+			console.log('opponent grid: ', this.gameRef.getGridForOpponent(this.localPlayer).toString());
 			this.opponentGrid.updateGridRef(this.gameRef.getGridForOpponent(this.localPlayer));
 		}
 		this.opponentGrid.setActive(true);
 	}
 
 	drawOrDestroyStartGameButton() {
-		if (!this.sceneObjects.startGameButton && this.gameReady && !this.gameRef?.started) {
+		if (!this.sceneObjects.startGameButton && !this.gameRef?.started) {
 			this.sceneObjects.startGameButton = this.add
 				.text(0, 0, 'Start Game!', {
-					color: '#4effce',
+					color: this._labelFontColor,
 					fontSize: '35px',
 				})
 				.setInteractive()
 				.on('pointerover', () => {
-					(this.sceneObjects.startGameButton as Phaser.GameObjects.Text).setColor('#888888');
+					(this.sceneObjects.startGameButton as Phaser.GameObjects.Text).setColor(this._accentFontColor);
 				})
 				.on('pointerout', () => {
-					(this.sceneObjects.startGameButton as Phaser.GameObjects.Text).setColor('#4effce');
+					(this.sceneObjects.startGameButton as Phaser.GameObjects.Text).setColor(this._labelFontColor);
 				})
 				.on('pointerdown', () => {
 					this.socket.emit(START_GAME, { roomId: this.roomId } as StartGameArgs);

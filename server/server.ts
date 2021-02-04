@@ -1,5 +1,5 @@
-import { ServerInfo } from '../shared/communication-methods';
-import GameManager from './game-manager';
+import { ServerInfo } from '../shared/communications';
+import GameManager from './gameManager';
 
 const server = require('express')();
 const http = require('http').createServer(server);

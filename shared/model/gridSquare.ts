@@ -43,7 +43,7 @@ export default class GridSquare {
 
 	static fromJson(json: object): GridSquare {
 		if (!json) return null;
-		let square = new GridSquare(json['_coordinate']);
+		let square = new GridSquare(Coordinate.fromJson(json['_coordinate']));
 		square._isMarked = json['_isMarked'];
 		square._shipRef = Ship.fromJson(json['_shipRef']);
 		return square;

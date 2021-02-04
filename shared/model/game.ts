@@ -98,12 +98,12 @@ export default class Game {
 		if (player && grid && this.isPlayerTurn(player) && grid.id !== this.getGridFor(player)?.id) {
 			return this.guessSquare(player, grid, coordinate);
 		} else {
-			console.log(`${player?.name} clicked square, but it either wasn't their turn or was the wrong grid.`);
-			return false;
+			throw `${player?.name} clicked square, but it either wasn't their turn or was the wrong grid.`;
 		}
 	}
 
 	guessSquare(guessingPlayer: Player, guessingGrid: Grid, coordinate: Coordinate): boolean {
+		if (guessingGrid) console.log(guessingGrid.toString());
 		if (!guessingGrid || guessingGrid.get(coordinate).marked) return false;
 		guessingPlayer.guessCoordinate(coordinate);
 		return guessingGrid.get(coordinate).mark();
