@@ -61,18 +61,18 @@ export default class Game {
 		return true;
 	}
 
-	getGridFor(player: Player): Grid | null {
-		if (player && this._playerIdToGridId[player.id]) {
-			const gridId = this._playerIdToGridId[player.id];
+	getGridFor(playerId: string): Grid | null {
+		if (playerId && this._playerIdToGridId[playerId]) {
+			const gridId = this._playerIdToGridId[playerId];
 			return this._grids[gridId];
 		}
 		return null;
 	}
 
-	getGridForOpponent(player: Player): Grid | null {
-		if (!player || this.players.length < 2) return null;
+	getGridForOpponent(playerId: string): Grid | null {
+		if (!playerId || this.players.length < 2) return null;
 		for (const p of this.players) {
-			if (p.id !== player.id) {
+			if (p.id !== playerId) {
 				const gridId = this._playerIdToGridId[p.id];
 				return this._grids[gridId];
 			}
@@ -90,21 +90,33 @@ export default class Game {
 		return player?.id === this.currentPlayer?.id;
 	}
 
-	gridSquareClicked(player: Player, grid: Grid, coordinate: Coordinate): boolean {
+	getPlayer(playerId: string): Player {
+		return this._players[playerId];
+	}
+
+	getGrid(gridId: string): Grid {
+		return this._grids[gridId];
+	}
+
+	gridSquareClicked(playerId: string, gridId: string, coordinate: Coordinate): boolean {
 		if (this._phase !== GamePhase.Guessing) {
 			throw 'Cannot click square in any phase except guessing!';
 		}
 
-		if (player && grid && this.isPlayerTurn(player) && grid.id !== this.getGridFor(player)?.id) {
-			return this.guessSquare(player, grid, coordinate);
+		const player = this.getPlayer(playerId);
+		const grid = this.getGrid(gridId);
+
+		if (player && grid && this.isPlayerTurn(player) && grid.id !== this.getGridFor(playerId)?.id) {
+			return this._guessSquare(player, grid, coordinate);
 		} else {
 			throw `${player?.name} clicked square, but it either wasn't their turn or was the wrong grid.`;
 		}
 	}
 
-	guessSquare(guessingPlayer: Player, guessingGrid: Grid, coordinate: Coordinate): boolean {
-		if (guessingGrid) console.log(guessingGrid.toString());
-		if (!guessingGrid || guessingGrid.get(coordinate).marked) return false;
+	private _guessSquare(guessingPlayer: Player, guessingGrid: Grid, coordinate: Coordinate): boolean {
+		if (!guessingGrid || guessingGrid.get(coordinate).marked) {
+			throw `${guessingPlayer?.name} has already guessed ${coordinate.toString()}`;
+		}
 		guessingPlayer.guessCoordinate(coordinate);
 		return guessingGrid.get(coordinate).mark();
 	}

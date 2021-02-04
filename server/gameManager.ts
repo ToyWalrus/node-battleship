@@ -9,6 +9,7 @@ import {
 	PLAYER_LEAVE,
 	StartGameArgs,
 	START_GAME,
+	UpdateGameArgs,
 	UPDATE_GAME,
 } from '../shared/communications';
 import Coordinate from '../shared/model/coordinate';
@@ -49,7 +50,7 @@ export default class GameManager {
 		const game = this.games.get(roomId);
 
 		if (game.startGame()) {
-			this._broadcastEvent(GAME_STARTED, { game }, roomId);
+			this._broadcastEvent(GAME_STARTED, { game } as UpdateGameArgs, roomId);
 		} else {
 			this._warn('Could not start game (maybe it has already started?)', { roomId, game });
 		}
@@ -64,10 +65,9 @@ export default class GameManager {
 		const roomId = args.roomId;
 		const game = this.games.get(roomId);
 		try {
-			const player = Player.fromJSON(args.sendingPlayer);
-			const grid = Grid.fromJson(args.grid);
+			const player = game.getPlayer(args.sendingPlayerId);
 			const coord = Coordinate.fromJson(args.coordinate);
-			const success = game.gridSquareClicked(player, grid, coord);
+			const success = game.gridSquareClicked(args.sendingPlayerId, args.guessedGridId, coord);
 
 			if (success) {
 				this._log(`${player.name} guessed a spot with a ship!`);
@@ -76,7 +76,7 @@ export default class GameManager {
 			}
 
 			game.endCurrentTurn();
-			this._broadcastEvent(UPDATE_GAME, { game }, args.roomId);
+			this._broadcastEvent(UPDATE_GAME, { game } as UpdateGameArgs, args.roomId);
 		} catch (e) {
 			this._log('Clicking square failed: ', e);
 		}
@@ -168,7 +168,7 @@ export default class GameManager {
 		this._log(`Player (${player.name}) joined game "${args.roomId}"! (Current player count: ${game.players.length})`);
 		if (game.players.length === 2) {
 			// Tell clients everything is ready
-			this._broadcastEvent(GAME_READY, null, roomId);
+			this._broadcastEvent(GAME_READY, { game } as UpdateGameArgs, roomId);
 		}
 	}
 

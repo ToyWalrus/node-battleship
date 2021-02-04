@@ -71,6 +71,7 @@ export default class GameScene extends Phaser.Scene {
 		this.socket = this.args?.socket;
 		if (this.socket) {
 			this.socket.on(PLAYER_LEAVE, () => {
+				console.log('A player left the game, returning to setup screen');
 				this.scene.start(SetupScene.key);
 			});
 			this.socket.on(GAME_READY, () => {
@@ -119,8 +120,7 @@ export default class GameScene extends Phaser.Scene {
 				scale
 			);
 		} else {
-			console.log('local player grid: ', this.gameRef.getGridFor(this.localPlayer).toString());
-			this.localGrid.updateGridRef(this.gameRef.getGridFor(this.localPlayer));
+			this.localGrid.updateGridRef(this.gameRef.getGridFor(this.localPlayer.id));
 		}
 		this.localGrid.setActive(false);
 	}
@@ -134,7 +134,7 @@ export default class GameScene extends Phaser.Scene {
 			let scaledGridWidth = GridImageDimensions.width * scale;
 
 			this.opponentGrid = new GridView(
-				this.gameRef.getGridForOpponent(this.localPlayer),
+				this.gameRef.getGridForOpponent(this.localPlayer.id),
 				null,
 				this._onGridClick.bind(this)
 			);
@@ -147,8 +147,7 @@ export default class GameScene extends Phaser.Scene {
 				scale
 			);
 		} else {
-			console.log('opponent grid: ', this.gameRef.getGridForOpponent(this.localPlayer).toString());
-			this.opponentGrid.updateGridRef(this.gameRef.getGridForOpponent(this.localPlayer));
+			this.opponentGrid.updateGridRef(this.gameRef.getGridForOpponent(this.localPlayer.id));
 		}
 		this.opponentGrid.setActive(true);
 	}
@@ -178,17 +177,16 @@ export default class GameScene extends Phaser.Scene {
 
 	private _onGridClick(grid: Grid, coordinate: Coordinate) {
 		this.socket?.emit(CLICK_SQUARE, {
-			grid,
 			coordinate,
 			roomId: this.roomId,
-			sendingPlayer: this.localPlayer,
+			guessedGridId: grid.id,
+			sendingPlayerId: this.localPlayer.id,
 		} as ClickSquareArgs);
 	}
 
 	private _onGameUpdate(args: UpdateGameArgs) {
 		this.gameRef = Game.fromJson(args.game);
-		console.log('update: ', args.game);
-		console.log(this.gameRef);
+		console.log('update: ', this.gameRef);
 
 		if (this.gameRef.started) {
 			if (this.gameRef.isPlayerTurn(this.localPlayer)) {

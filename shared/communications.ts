@@ -22,9 +22,9 @@ export interface StartGameArgs {
 
 export const CLICK_SQUARE = 'CLICK_SQUARE';
 export interface ClickSquareArgs {
-	sendingPlayer: Player;
+	sendingPlayerId: string;
+	guessedGridId: string;
 	coordinate: Coordinate;
-	grid: Grid;
 	roomId: string;
 }
 
