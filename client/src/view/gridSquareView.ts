@@ -1,5 +1,5 @@
 import Coordinate from '../../../shared/model/coordinate';
-import { GridSquareDimensions } from '../../../shared/utils/constants';
+import { GridSquareDimensions, MarkDimensions } from '../../../shared/utils/constants';
 import { Assets } from '../../../shared/utils/enums';
 import { IRenderable, Vector2 } from '../../../shared/utils/interfaces';
 import GridView from './gridView';
@@ -12,10 +12,8 @@ export default class GridSquareView implements IRenderable {
 	sceneObject: Phaser.GameObjects.Image;
 	bounds: Phaser.Geom.Rectangle;
 	marked: boolean;
+	scale: number;
 
-	get scale(): number {
-		return this.sceneObject.scale;
-	}
 	get scene(): Phaser.Scene {
 		return this.sceneObject.scene;
 	}
@@ -35,6 +33,7 @@ export default class GridSquareView implements IRenderable {
 	}
 
 	render(scene: Phaser.Scene, squareCenter: Vector2, scale: number): void {
+		this.scale = scale * (GridSquareDimensions.width / MarkDimensions.width);
 		this.sceneObject = scene.add
 			.image(squareCenter.x, squareCenter.y, Assets.Square)
 			.setScale(scale)
@@ -62,12 +61,7 @@ export default class GridSquareView implements IRenderable {
 			this.clearTint();
 		});
 
-		this.sceneObject.on('pointerdown', () => {
-			if (this.isActive) {
-				this.gridView.onGridSquareClicked(this.coordinate);
-			}
-		});
-
+		this.sceneObject.on('pointerdown', this.onPointerDown.bind(this));
 		this.bounds = this.sceneObject.getBounds();
 	}
 

@@ -1,3 +1,4 @@
+import Coordinate from '../../../shared/model/coordinate';
 import Game from '../../../shared/model/game';
 import Grid from '../../../shared/model/grid';
 import Player from '../../../shared/model/Player';
@@ -10,6 +11,8 @@ import GameScene from './gameScene';
 
 export default class TestScene extends Phaser.Scene {
 	battleshipGame: Game;
+	grid: Grid;
+	gridView: GridView;
 
 	constructor() {
 		super({
@@ -39,15 +42,22 @@ export default class TestScene extends Phaser.Scene {
 		let shipview2 = new ShipView(testPlayer, new Ship({ length: 2 }), Assets.Submarine);
 		shipview2.render(this, { x: 900, y: 500 }, scale);
 
-		let gridView = new GridView(new Grid(), testPlayer);
-		gridView.render(this, { x: 300, y: 300 }, scale);
+		this.grid = new Grid();
+		this.gridView = new GridView(this.grid, testPlayer, this.clickSquare.bind(this));
+		this.gridView.render(this, { x: 300, y: 300 }, scale);
+
 
 		this.add
-			.text(700, 600, 'Change scene', { color: '#000000' })
+			.text(700, 600, 'Guess random coordinate', { color: '#000000' })
 			.setInteractive()
 			.on('pointerdown', () => {
-				this.scene.start(GameScene.key, { i: 'data i', shipview, gridView });
+				this.clickSquare(this.grid, Coordinate.random());
 			});
+	}
+
+	clickSquare(grid: Grid, coordinate: Coordinate) { 
+		this.grid.get(coordinate).mark();
+		this.gridView.updateGridRef(this.grid);
 	}
 
 	spawnGrids() {

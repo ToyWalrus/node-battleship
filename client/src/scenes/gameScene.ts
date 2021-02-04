@@ -20,7 +20,7 @@ import Coordinate from '../../../shared/model/coordinate';
 import SetupScene from './setupScene';
 
 export interface GameSceneArgs {
-	localPlayer: Player;
+	localPlayerId: string;
 	localGrid: Grid;
 	socket: Socket;
 	roomId: string;
@@ -43,8 +43,8 @@ export default class GameScene extends Phaser.Scene {
 	private _labelFontColor = '#222222';
 	private _accentFontColor = '#4effce';
 
-	get localPlayer(): Player {
-		return this.args?.localPlayer;
+	get localPlayerId(): string {
+		return this.args?.localPlayerId;
 	}
 	get roomId(): string {
 		return this.args?.roomId;
@@ -113,14 +113,14 @@ export default class GameScene extends Phaser.Scene {
 			let scaledGridHeight = GridImageDimensions.height * scale;
 			let scaledGridWidth = GridImageDimensions.width * scale;
 
-			this.localGrid = new GridView(this.args?.localGrid, this.localPlayer, this._onGridClick.bind(this));
+			this.localGrid = new GridView(this.args?.localGrid, null, this._onGridClick.bind(this));
 			this.localGrid.render(
 				this,
 				{ x: scaledGridWidth / 2, y: CanvasDimensions.height - scaledGridHeight / 2 - padding },
 				scale
 			);
 		} else {
-			this.localGrid.updateGridRef(this.gameRef.getGridFor(this.localPlayer.id));
+			this.localGrid.updateGridRef(this.gameRef.getGridFor(this.localPlayerId));
 		}
 		this.localGrid.setActive(false);
 	}
@@ -134,7 +134,7 @@ export default class GameScene extends Phaser.Scene {
 			let scaledGridWidth = GridImageDimensions.width * scale;
 
 			this.opponentGrid = new GridView(
-				this.gameRef.getGridForOpponent(this.localPlayer.id),
+				this.gameRef.getGridForOpponent(this.localPlayerId),
 				null,
 				this._onGridClick.bind(this)
 			);
@@ -147,7 +147,7 @@ export default class GameScene extends Phaser.Scene {
 				scale
 			);
 		} else {
-			this.opponentGrid.updateGridRef(this.gameRef.getGridForOpponent(this.localPlayer.id));
+			this.opponentGrid.updateGridRef(this.gameRef.getGridForOpponent(this.localPlayerId));
 		}
 		this.opponentGrid.setActive(true);
 	}
@@ -180,7 +180,7 @@ export default class GameScene extends Phaser.Scene {
 			coordinate,
 			roomId: this.roomId,
 			guessedGridId: grid.id,
-			sendingPlayerId: this.localPlayer.id,
+			sendingPlayerId: this.localPlayerId,
 		} as ClickSquareArgs);
 	}
 
@@ -189,7 +189,7 @@ export default class GameScene extends Phaser.Scene {
 		console.log('update: ', this.gameRef);
 
 		if (this.gameRef.started) {
-			if (this.gameRef.isPlayerTurn(this.localPlayer)) {
+			if (this.gameRef.isPlayerTurn(this.localPlayerId)) {
 				this.drawTitleText(`Your turn!`);
 			} else {
 				this.drawTitleText(`${this.gameRef.currentPlayer.name}'s turn`);

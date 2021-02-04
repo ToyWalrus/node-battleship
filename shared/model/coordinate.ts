@@ -2,6 +2,8 @@
 import Math from '../utils/math';
 
 export default class Coordinate {
+	private static _rand = new Phaser.Math.RandomDataGenerator(new Date().toISOString());
+
 	row: Row;
 	col: number;
 
@@ -22,6 +24,12 @@ export default class Coordinate {
 		let rowName = 'A';
 		rowName = String.fromCharCode(rowName.charCodeAt(0) + (this.row - 1));
 		return `(${rowName}, ${this.col})`;
+	}
+
+	static random(): Coordinate {
+		let row = Coordinate._rand.integerInRange(1, 10);
+		let col = Coordinate._rand.integerInRange(1, 10);
+		return new Coordinate(row, col);
 	}
 
 	static fromJson(json: object): Coordinate {

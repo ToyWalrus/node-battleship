@@ -232,8 +232,8 @@ export default class SetupScene extends Phaser.Scene {
 			(wasAcceptedIntoGame: boolean) => {
 				if (wasAcceptedIntoGame) {
 					this.scene.start('BattleshipGame_Game', {
+						localPlayerId: this.localPlayer.id,
 						localGrid: this.playerGrid,
-						localPlayer: this.localPlayer,
 						socket: this.socket,
 						roomId: this.roomIdInput.text,
 						gameScale: this.gameScale,

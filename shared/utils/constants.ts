@@ -16,6 +16,11 @@ export const GridSquareDimensions: Dimensions = {
 	width: 100,
 };
 
+export const MarkDimensions: Dimensions = {
+	height: 200,
+	width: 200,
+}
+
 export const PluginKeys = {
 	RexUI: 'rexUI',
 };

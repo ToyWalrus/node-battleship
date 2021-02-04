@@ -86,8 +86,8 @@ export default class Game {
 		this._grids[grid.id] = grid;
 	}
 
-	isPlayerTurn(player: Player): boolean {
-		return player?.id === this.currentPlayer?.id;
+	isPlayerTurn(playerId: string): boolean {
+		return playerId === this.currentPlayer?.id;
 	}
 
 	getPlayer(playerId: string): Player {
@@ -106,7 +106,7 @@ export default class Game {
 		const player = this.getPlayer(playerId);
 		const grid = this.getGrid(gridId);
 
-		if (player && grid && this.isPlayerTurn(player) && grid.id !== this.getGridFor(playerId)?.id) {
+		if (player && grid && this.isPlayerTurn(playerId) && grid.id !== this.getGridFor(playerId)?.id) {
 			return this._guessSquare(player, grid, coordinate);
 		} else {
 			throw `${player?.name} clicked square, but it either wasn't their turn or was the wrong grid.`;

@@ -22,7 +22,7 @@ const config: Phaser.Types.Core.GameConfig = {
 			},
 		],
 	},
-	scene: [SetupScene, GameScene],
+	scene: [/*TestScene,*/SetupScene, GameScene],
 	backgroundColor: '#ffffff',
 	canvasStyle: 'border: 1px solid black', // for development purposes
 };
