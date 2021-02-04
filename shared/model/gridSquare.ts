@@ -1,14 +1,20 @@
-﻿import Coordinate from "./coordinate";
-import Ship from "./ship";
+﻿import Coordinate from './coordinate';
+import Ship from './ship';
 
 export default class GridSquare {
 	private _coordinate: Coordinate;
 	private _isMarked: boolean;
 	private _shipRef: Ship;
 
-	get hasShip(): boolean { return this._shipRef != null; }
-	get marked(): boolean { return this._isMarked; }
-	get coordinate(): Coordinate { return this._coordinate; }
+	get hasShip(): boolean {
+		return this._shipRef != null;
+	}
+	get marked(): boolean {
+		return this._isMarked;
+	}
+	get coordinate(): Coordinate {
+		return this._coordinate;
+	}
 
 	constructor(coordinate: Coordinate) {
 		this._coordinate = coordinate;
@@ -33,5 +39,12 @@ export default class GridSquare {
 
 	removeShipPart(): void {
 		this._shipRef = null;
+	}
+
+	static fromJson(json: object): GridSquare {
+		let square = new GridSquare(json['_coordinate']);
+		square._isMarked = json['_isMarked'];
+		square._shipRef = Ship.fromJson(json['_shipRef']);
+		return square;
 	}
 }

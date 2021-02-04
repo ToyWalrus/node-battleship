@@ -76,7 +76,7 @@ export default class GridView implements IRenderable {
 
 	onShipPlaced(ship: ShipView, originCoordinate: Coordinate): boolean {
 		if (!this.isActive || this.owner !== ship.owner) return false;
-		let success = ship.shipRef.place(this.gridRef, originCoordinate, ShipView.currentFacingDirection);
+		let success = ship.place(this, originCoordinate);
 		if (success) {
 			console.log('placed ship:');
 			console.log(this.gridRef.toString());

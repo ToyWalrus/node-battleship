@@ -4,9 +4,11 @@ import Ship from '../../../shared/model/ship';
 import { Direction } from '../../../shared/utils/enums';
 import { IRenderable, Vector2 } from '../../../shared/utils/interfaces';
 import GridSquareView from './gridSquareView';
+import GridView from './gridView';
 
 export default class ShipView implements IRenderable {
 	shipRef: Ship;
+	gridView: GridView;
 	assetPath: string;
 	sceneObject: Phaser.GameObjects.Image;
 	owner: Player;
@@ -16,6 +18,7 @@ export default class ShipView implements IRenderable {
 	shipLengthInPixels: number;
 	repositioningShip: boolean;
 	previousShipLocation: Coordinate;
+	hasBeenPlaced: boolean;
 
 	static currentFacingDirection: Direction = Direction.Right;
 	static viewDepth = 2;
@@ -56,9 +59,9 @@ export default class ShipView implements IRenderable {
 
 		this.sceneObject.on('dragstart', () => {
 			this.owner.selectShip(this.shipRef);
-			if (this.shipRef.hasBeenPlaced) {
+			if (this.hasBeenPlaced) {
 				this.repositioningShip = true;
-				this.shipRef.removeFromGrid();
+				this.removeFromGrid();
 			}
 			this.updateShipRotation();
 		});
@@ -111,7 +114,8 @@ export default class ShipView implements IRenderable {
 		this.sceneObject.setPosition(this.dragStart.x, this.dragStart.y);
 
 		if (gridSquare && this.previousShipLocation) {
-			this.shipRef.place(gridSquare.gridView.gridRef, this.previousShipLocation, this.originalRotation);
+			ShipView.currentFacingDirection = this.originalRotation;
+			this.place(gridSquare.gridView, this.previousShipLocation);
 			console.log('replaced ship:');
 			console.log(gridSquare.gridView.gridRef.toString());
 		}
@@ -150,5 +154,97 @@ export default class ShipView implements IRenderable {
 		const mousePos = scene.input.mousePointer.position;
 		const newPos = this.positionShipUnderMouse(mousePos.x, mousePos.y);
 		this.sceneObject.setPosition(newPos.x, newPos.y);
+	}
+
+	place(grid: GridView, placeSpot: Coordinate): boolean {
+		this.gridView = grid;
+
+		if (!this._checkIfInBounds(placeSpot, ShipView.currentFacingDirection)) {
+			console.log('Cannot place -- not in bounds!');
+			return false;
+		}
+		if (!this._checkNotOverlappingExistingShips(placeSpot, ShipView.currentFacingDirection)) {
+			console.log('Cannot place -- overlapping existing ship!');
+			return false;
+		}
+
+		this._placeAllShipParts(placeSpot, ShipView.currentFacingDirection);
+		this.hasBeenPlaced = true;
+		return true;
+	}
+
+	removeFromGrid(): void {
+		if (this.gridView == null) return;
+
+		this.shipRef.coordinates.forEach((coordinate) => {
+			this.gridView.gridRef.get(coordinate).removeShipPart();
+		});
+
+		this.hasBeenPlaced = false;
+		this.shipRef.setCoordinates([]);
+	}
+
+	private _checkIfInBounds(startSpot: Coordinate, dir: Direction): boolean {
+		// Subtracting length by 1 so the math is 0-based and will line
+		// up with the rows and columns being 1-based
+		let shipLength = this.shipRef.length - 1;
+		switch (dir) {
+			case Direction.Left:
+				return startSpot.col - shipLength >= 1;
+			case Direction.Up:
+				return startSpot.row - shipLength >= 1;
+			case Direction.Right:
+				return startSpot.col + shipLength <= 10;
+			case Direction.Down:
+				return startSpot.row + shipLength <= 10;
+			default:
+				console.error(`Why are we here?? Given direction must have been null: ${dir}`);
+				return false;
+		}
+	}
+
+	private _checkNotOverlappingExistingShips(startSpot: Coordinate, dir: Direction): boolean {
+		let coords = this._getSpotsFor(startSpot, dir);
+		for (const coord of coords) {
+			if (this.gridView.gridRef.get(coord).hasShip) return false;
+		}
+		return true;
+	}
+
+	private _placeAllShipParts(startSpot: Coordinate, dir: Direction): void {
+		let coords = this._getSpotsFor(startSpot, dir);
+		this.shipRef.setCoordinates(coords);
+		for (const coord of coords) {
+			this.gridView.gridRef.get(coord).placeShipPart(this.shipRef);
+		}
+	}
+
+	private _getSpotsFor(startSpot: Coordinate, dir: Direction): Coordinate[] {
+		let spots: Coordinate[] = [];
+		let shipLength = this.shipRef.length - 1;
+		let startRowVal = startSpot.row;
+		switch (dir) {
+			case Direction.Left:
+				for (let col = startSpot.col; col >= startSpot.col - shipLength; --col) {
+					spots.push(new Coordinate(startSpot.row, col));
+				}
+				break;
+			case Direction.Up:
+				for (let row = startRowVal; row >= startRowVal - shipLength; --row) {
+					spots.push(new Coordinate(row, startSpot.col));
+				}
+				break;
+			case Direction.Right:
+				for (let col = startSpot.col; col <= startSpot.col + shipLength; ++col) {
+					spots.push(new Coordinate(startSpot.row, col));
+				}
+				break;
+			case Direction.Down:
+				for (let row = startRowVal; row <= startRowVal + shipLength; ++row) {
+					spots.push(new Coordinate(row, startSpot.col));
+				}
+				break;
+		}
+		return spots;
 	}
 }

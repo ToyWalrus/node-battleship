@@ -1,3 +1,4 @@
+import { JoinGameArgs, JOIN_GAME, ServerInfo } from '../../../shared/communication-methods';
 import Game from '../../../shared/model/game';
 import Grid from '../../../shared/model/grid';
 import Player from '../../../shared/model/Player';
@@ -13,8 +14,10 @@ export default class SetupScene extends Phaser.Scene {
 	battleshipGame: Game;
 	localPlayer: Player;
 	playerGrid: Grid;
-	playerShips: Ship[];
+	playerShips: ShipView[];
+	playerShipRefs: Ship[];
 	socket: Socket;
+	playerNameInput: Phaser.GameObjects.Text;
 
 	private _hexBlack = 0x222222;
 	private _labelFontColor = '#222222';
@@ -34,7 +37,8 @@ export default class SetupScene extends Phaser.Scene {
 		this.load.image(Assets.Submarine, 'src/assets/Submarine.png');
 		this.load.image(Assets.Square, 'src/assets/BlankSquare.png');
 
-		this.playerShips = [
+		this.playerShips = [];
+		this.playerShipRefs = [
 			new Ship({ length: 2 }),
 			new Ship({ length: 3 }),
 			new Ship({ length: 3 }),
@@ -42,7 +46,7 @@ export default class SetupScene extends Phaser.Scene {
 			new Ship({ length: 5 }),
 		];
 		this.playerGrid = new Grid();
-		this.localPlayer = new Player({ ships: this.playerShips });
+		this.localPlayer = new Player({ ships: this.playerShipRefs });
 	}
 
 	create() {
@@ -75,20 +79,7 @@ export default class SetupScene extends Phaser.Scene {
 	}
 
 	setupSocketIO() {
-		// this.socket = io('http://localhost:3000');
-		// this.socket.on('connect', () => {
-		// 	console.log('Connected!');
-		// });
-
-		// this.socket.on('isPlayerA', () => {
-		// 	console.log('I am the first player!');
-		// });
-
-		var g = new Game();
-		g.addPlayer(new Player({ name: 'bruh dude' }), new Grid());
-		console.log(JSON.stringify(g));
-
-		// this.socket.emit('...')
+		this.socket = io(ServerInfo.hostname + ':' + ServerInfo.port);
 	}
 
 	drawHeaderText(text: string, position: Vector2) {
@@ -110,7 +101,7 @@ export default class SetupScene extends Phaser.Scene {
 		const labelYOffset = 10;
 		const containerPadding = 50;
 		const shipPositionalGap = 100 * scale + (100 * scale) / 10;
-		const totalAreaHeight = shipPositionalGap * this.playerShips.length + labelFontSize + labelYOffset;
+		const totalAreaHeight = shipPositionalGap * this.playerShipRefs.length + labelFontSize + labelYOffset;
 
 		let shipsContainer = this.add.rectangle(
 			shipsPosition.x,
@@ -134,11 +125,12 @@ export default class SetupScene extends Phaser.Scene {
 			}
 		);
 
-		for (let i = 0; i < this.playerShips.length; ++i) {
-			const ship = this.playerShips[i];
+		for (let i = 0; i < this.playerShipRefs.length; ++i) {
+			const ship = this.playerShipRefs[i];
 			const shipView = new ShipView(this.localPlayer, ship, this._getShipAsset(ship));
 			const positionY = shipsPosition.y + shipPositionalGap * (i + 1);
 			shipView.render(this, { x: shipsPosition.x, y: positionY }, scale);
+			this.playerShips.push(shipView);
 		}
 	}
 
@@ -167,6 +159,8 @@ export default class SetupScene extends Phaser.Scene {
 			.setInteractive();
 
 		buttonRect.on('pointerover', () => {
+			console.log(this.playerNameInput);
+			this.localPlayer.setName(this.playerNameInput.text);
 			if (!this._canJoinGame) return;
 			button.fillColor = 0x555555;
 			buttonText.setColor('#4eceff');
@@ -179,7 +173,22 @@ export default class SetupScene extends Phaser.Scene {
 
 		buttonRect.on('pointerdown', () => {
 			if (!this._canJoinGame) return;
-			console.log('join game!');
+			this.socket.emit(
+				JOIN_GAME,
+				{
+					player: this.localPlayer,
+					grid: this.playerGrid,
+					roomId: 'game',
+				} as JoinGameArgs,
+				(wasAcceptedIntoGame: boolean) => {
+					if (wasAcceptedIntoGame) {
+						// this.scene.start('BattleshipGame_Game');
+						console.log('Accepted into game!');
+					} else {
+						console.warn('The server did not allow you into the game');
+					}
+				}
+			);
 		});
 	}
 
@@ -190,7 +199,7 @@ export default class SetupScene extends Phaser.Scene {
 			fontStyle: 'bold',
 		});
 
-		let playerNameInput = this.add
+		this.playerNameInput = this.add
 			.text(labelPosition.x, labelPosition.y + 30, '', {
 				fixedWidth: 200,
 				fixedHeight: 30,
@@ -199,8 +208,8 @@ export default class SetupScene extends Phaser.Scene {
 			})
 			.setInteractive();
 
-		playerNameInput.on('pointerdown', () => {
-			this[PluginKeys.RexUI].edit(playerNameInput);
+		this.playerNameInput.on('pointerdown', () => {
+			this[PluginKeys.RexUI].edit(this.playerNameInput);
 		});
 	}
 
@@ -220,6 +229,10 @@ export default class SetupScene extends Phaser.Scene {
 	}
 
 	private get _canJoinGame() {
-		return this.localPlayer.name !== null && this.localPlayer.name !== '' && this.localPlayer.allShipsArePlaced();
+		return (
+			this.localPlayer.name !== null &&
+			this.localPlayer.name !== '' &&
+			this.playerShips.every((s) => s.hasBeenPlaced)
+		);
 	}
 }

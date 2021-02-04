@@ -101,4 +101,19 @@ export default class Game {
 	endCurrentTurn(): void {
 		this._currentPlayerTurn = (this._currentPlayerTurn + 1) % 2;
 	}
+
+	static fromJson(json: object): Game {
+		let game = new Game();
+		game._phase = json['_phase'];
+		game._players = {};
+		game._grids = {};
+
+		game._playerIdToGridId = json['_playerIdToGridId'];
+		Object.keys(game._playerIdToGridId).forEach((key) => {
+			game._players[key] = Player.fromJSON(json['_players'][key]);
+			game._grids[game._playerIdToGridId[key]] = Grid.fromJson(json['_grids'][game._playerIdToGridId[key]]);
+		});
+
+		return game;
+	}
 }

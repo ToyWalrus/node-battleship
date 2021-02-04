@@ -23,4 +23,8 @@ export default class Coordinate {
 		rowName = String.fromCharCode(rowName.charCodeAt(0) + (this.row - 1));
 		return `(${rowName}, ${this.col})`;
 	}
+
+	static fromJson(json: object): Coordinate {
+		return new Coordinate(json['row'], json['col']);
+	}
 }

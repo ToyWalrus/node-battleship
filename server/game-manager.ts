@@ -11,6 +11,7 @@ import {
 	UPDATE_GAME,
 } from '../shared/communication-methods';
 import Game from '../shared/model/game';
+import Player from '../shared/model/Player';
 
 const CONNECTION = 'connection';
 const DISCONNECT = 'disconnect';
@@ -28,7 +29,7 @@ export default class GameManager {
 		this.debugLog = debugLog;
 
 		// Set up the callback for when players connect to the server
-		io.on(CONNECTION, this.playerConnected);
+		io.on(CONNECTION, this.playerConnected.bind(this));
 	}
 
 	// ==============
@@ -64,6 +65,8 @@ export default class GameManager {
 
 			if (success) {
 				this._log(`${args.sendingPlayer.name} guessed a spot with a ship!`);
+			} else {
+				this._log(`${args.sendingPlayer.name} guessed a spot without a ship`);
 			}
 
 			game.endCurrentTurn();
@@ -79,33 +82,44 @@ export default class GameManager {
 
 	// Happens when a player registers with the server
 	playerConnected(socket: Socket): void {
-		this._log('User connected! ', socket);
+		this._log('User connected! ', socket.id);
 		this.playerConnections.set(socket, null);
 
 		// Setup callbacks
 		socket.on(DISCONNECT, () => this.playerDisconnected(socket));
-		socket.on(JOIN_GAME, (args) => this.playerJoinedGame(socket, args));
-		socket.on(START_GAME, this.startGame);
-		socket.on(CLICK_SQUARE, this.clickSquare);
+		socket.on(JOIN_GAME, (args, cb) => this.playerJoinedGame(socket, args, cb));
+		socket.on(START_GAME, this.startGame.bind(this));
+		socket.on(CLICK_SQUARE, this.clickSquare.bind(this));
 	}
 
 	// Happens when a player is... you know... disconnected
 	playerDisconnected(socket: Socket): void {
-		this._log('User disconnected! ', socket);
+		this._log('User disconnected! ', socket.id);
 		this.playerConnections.delete(socket);
 	}
 
 	// Happens when a player has clicked "Join Game" after placing their ships
-	playerJoinedGame(socket: Socket, args: JoinGameArgs): void {
+	playerJoinedGame(socket: Socket, args: JoinGameArgs, clientJoinGameCallback: (didJoin: boolean) => void): void {
 		if (!args) {
-			this._warn('Player joined game but no arguments were sent');
+			this._warn('Player tried to joined game but no arguments were sent');
 			return;
 		}
 
-		// Join the room
+		// Check the room
 		const roomId = args.roomId;
-		this.playerConnections.set(socket, roomId);
-		socket.join(roomId);
+		if (socket.rooms.has(roomId)) {
+			this._warn(`Player (${args.player.name}) has already joined "${roomId}"`);
+			clientJoinGameCallback(false);
+			return;
+		} else if (this.playerConnections.get(socket) && this.playerConnections.get(socket) !== roomId) {
+			this._warn(
+				`Player (${
+					args.player.name
+				}) is trying to game hop over into "${roomId}"! (From ${this.playerConnections.get(socket)})`
+			);
+			clientJoinGameCallback(false);
+			return;
+		}
 
 		// Create game/check game status
 		let game = this.games.get(roomId);
@@ -115,8 +129,15 @@ export default class GameManager {
 		}
 		if (game.started) {
 			this._warn('Player joined a game that has already started!');
+			clientJoinGameCallback(false);
 			return;
 		}
+
+		// Join the room
+		this._log(`Player (${args.player.name}) joined game "${args.roomId}"!`);
+		this.playerConnections.set(socket, roomId);
+		socket.join(roomId);
+		clientJoinGameCallback(true);
 
 		// Register player to game
 		game.addPlayer(args.player, args.grid);

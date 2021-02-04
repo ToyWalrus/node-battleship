@@ -75,7 +75,12 @@ export default class Player {
 		return this._ships.length > 0 && this._ships.every((s) => s.isSunk);
 	}
 
-	allShipsArePlaced(): boolean {
-		return this._ships.length > 0 && this._ships.every((s) => s.hasBeenPlaced);
+	static fromJSON(json: object): Player {
+		let player = new Player();
+		player._id = json['_id'];
+		player._name = json['_name'];
+		player._ships = (json['_ships'] as object[]).map(Ship.fromJson);
+		player._guessedCoordinates = (json['_guessedCoordinates'] as object[]).map(Coordinate.fromJson);
+		return player;
 	}
 }
