@@ -9,22 +9,26 @@ import ShipView from './shipView';
 import Player from '../../../shared/model/Player';
 import { Math } from 'phaser';
 
+type GridSquareClickCallback = (grid: Grid, coord: Coordinate) => void;
+
 export default class GridView implements IRenderable {
 	gridRef: Grid;
 	gridSquares: Map<string, GridSquareView>;
 	isActive: boolean;
 	owner: Player;
 	scale: number;
+	gridSquareClickCallback: GridSquareClickCallback;
 
 	previousDragOriginCoordinate: Coordinate;
 	previousFacingDirection: Direction;
 	previousPosition: Vector2;
 
-	constructor(grid: Grid, owner?: Player) {
+	constructor(grid: Grid, owner?: Player, callback?: GridSquareClickCallback) {
 		this.gridRef = grid;
 		this.owner = owner;
 		this.gridSquares = new Map<string, GridSquareView>();
 		this.isActive = true;
+		this.gridSquareClickCallback = callback;
 		loopThroughGrid((coord: Coordinate) => {
 			this.gridSquares.set(coord.toString(), new GridSquareView(coord, this));
 			return false;
@@ -70,8 +74,20 @@ export default class GridView implements IRenderable {
 		});
 	}
 
-	onGridSquareClicked(coordinate: Coordinate) {
-		console.log(`Clicked on ${coordinate}`);
+	updateGridRef(grid: Grid): void {
+		this.gridRef = grid;
+
+		for (const coord of grid.markedSquares) {
+			this.getSquare(coord).markSquare(grid.get(coord).hasShip);
+		}
+	}
+
+	onGridSquareClicked(coordinate: Coordinate): void {
+		if (this.isActive && this.gridSquareClickCallback) {
+			this.gridSquareClickCallback(this.gridRef, coordinate);
+		} else {
+			console.log(`Clicked on ${coordinate}`);
+		}
 	}
 
 	onShipPlaced(ship: ShipView, originCoordinate: Coordinate): boolean {
@@ -88,6 +104,7 @@ export default class GridView implements IRenderable {
 	}
 
 	setActive(active: boolean) {
+		if (this.isActive === active) return;
 		this.isActive = active;
 		this.gridSquares.forEach((square) => square.setActive(active));
 	}

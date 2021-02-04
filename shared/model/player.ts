@@ -16,9 +16,6 @@ export default class Player {
 	private _id: string;
 
 	get id(): string {
-		if (!this._id) {
-			this._id = UuidV4();
-		}
 		return this._id;
 	}
 	get selectedShip(): Ship {
@@ -36,6 +33,7 @@ export default class Player {
 		this._guessedCoordinates = args?.guessedCoordinates || [];
 		this._ships = args?.ships || [];
 		this._selectedShip = null;
+		this._id = UuidV4();
 	}
 
 	setName(name: string): void {

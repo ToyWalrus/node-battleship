@@ -3,14 +3,17 @@ import Game from '../../../shared/model/game';
 import Grid from '../../../shared/model/grid';
 import Player from '../../../shared/model/Player';
 import Ship from '../../../shared/model/ship';
-import { CanvasDimensions, GridImageDimensions, PluginKeys } from '../../../shared/utils/constants';
-import { Assets, GamePhase } from '../../../shared/utils/enums';
+import { CanvasDimensions, PluginKeys } from '../../../shared/utils/constants';
+import { Assets } from '../../../shared/utils/enums';
 import { Vector2 } from '../../../shared/utils/interfaces';
 import GridView from '../view/gridView';
 import ShipView from '../view/shipView';
 import { io, Socket } from 'socket.io-client';
+import { GameSceneArgs } from './gameScene';
 
 export default class SetupScene extends Phaser.Scene {
+	static key = 'BattleshipGame_Setup';
+
 	battleshipGame: Game;
 	localPlayer: Player;
 	playerGrid: Grid;
@@ -19,6 +22,7 @@ export default class SetupScene extends Phaser.Scene {
 	socket: Socket;
 	playerNameInput: Phaser.GameObjects.Text;
 	roomIdInput: Phaser.GameObjects.Text;
+	gameScale: number;
 
 	private _hexBlack = 0x222222;
 	private _labelFontColor = '#222222';
@@ -26,7 +30,7 @@ export default class SetupScene extends Phaser.Scene {
 
 	constructor() {
 		super({
-			key: 'BattleshipGame_Setup',
+			key: SetupScene.key,
 		});
 	}
 
@@ -48,10 +52,12 @@ export default class SetupScene extends Phaser.Scene {
 		];
 		this.playerGrid = new Grid();
 		this.localPlayer = new Player({ ships: this.playerShipRefs });
+
+		this.gameScale = 0.5;
 	}
 
 	create() {
-		const scale = 0.5;
+		const scale = this.gameScale;
 		this.socket = io(ServerInfo.hostname + ':' + ServerInfo.port);
 
 		const headerText = 'Place Your Ships!';
@@ -159,7 +165,6 @@ export default class SetupScene extends Phaser.Scene {
 			.setInteractive();
 
 		buttonRect.on('pointerover', () => {
-			this.localPlayer.setName(this.playerNameInput.text);
 			if (!this._canJoinGame) return;
 			button.fillColor = 0x555555;
 			buttonText.setColor('#4eceff');
@@ -170,25 +175,7 @@ export default class SetupScene extends Phaser.Scene {
 			buttonText.setColor(this._accentFontColor);
 		});
 
-		buttonRect.on('pointerdown', () => {
-			if (!this._canJoinGame) return;
-			this.socket.emit(
-				JOIN_GAME,
-				{
-					player: this.localPlayer,
-					grid: this.playerGrid,
-					roomId: this.roomIdInput.text,
-				} as JoinGameArgs,
-				(wasAcceptedIntoGame: boolean) => {
-					if (wasAcceptedIntoGame) {
-						// this.scene.start('BattleshipGame_Game');
-						console.log('Accepted into game!');
-					} else {
-						console.warn('The server did not allow you into the game');
-					}
-				}
-			);
-		});
+		buttonRect.on('pointerdown', this._joinGame.bind(this));
 	}
 
 	drawPlayerNameInputField(labelPosition: Vector2) {
@@ -233,6 +220,31 @@ export default class SetupScene extends Phaser.Scene {
 		});
 	}
 
+	private _joinGame(): void {
+		if (!this._canJoinGame) return;
+		this.socket.emit(
+			JOIN_GAME,
+			{
+				player: this.localPlayer,
+				grid: this.playerGrid,
+				roomId: this.roomIdInput.text,
+			} as JoinGameArgs,
+			(wasAcceptedIntoGame: boolean) => {
+				if (wasAcceptedIntoGame) {
+					this.scene.start('BattleshipGame_Game', {
+						localGrid: this.playerGrid,
+						localPlayer: this.localPlayer,
+						socket: this.socket,
+						roomId: this.roomIdInput.text,
+						gameScale: this.gameScale,
+					} as GameSceneArgs);
+				} else {
+					console.warn('The server did not allow you into the game');
+				}
+			}
+		);
+	}
+
 	private _getShipAsset(ship: Ship): string {
 		switch (ship.length) {
 			case 2:
@@ -249,6 +261,7 @@ export default class SetupScene extends Phaser.Scene {
 	}
 
 	private get _canJoinGame() {
+		this.localPlayer.setName(this.playerNameInput.text);
 		return (
 			this.localPlayer.name !== null &&
 			this.localPlayer.name !== '' &&

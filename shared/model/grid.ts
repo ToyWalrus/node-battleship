@@ -15,9 +15,6 @@ export default class Grid {
 	private _id: string;
 
 	get id(): string {
-		if (!this._id) {
-			this._id = UuidV4();
-		}
 		return this._id;
 	}
 
@@ -33,10 +30,17 @@ export default class Grid {
 				}
 			}
 		}
+		this._id = UuidV4();
 	}
 
 	get(coordinate: Coordinate): GridSquare {
 		return this._board[coordinate.toString()];
+	}
+
+	get markedSquares(): Coordinate[] {
+		return Object.values(this._board)
+			.filter((s) => s.marked)
+			.map((s) => s.coordinate);
 	}
 
 	toString(): string {

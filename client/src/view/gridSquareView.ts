@@ -11,13 +11,23 @@ export default class GridSquareView implements IRenderable {
 	isActive: boolean;
 	sceneObject: Phaser.GameObjects.Image;
 	bounds: Phaser.Geom.Rectangle;
+	marked: boolean;
+
+	get scale(): number {
+		return this.sceneObject.scale;
+	}
+	get scene(): Phaser.Scene {
+		return this.sceneObject.scene;
+	}
 
 	static viewDepth = 1;
+	static markDepth = ShipView.viewDepth + 1;
 
 	constructor(coordinate: Coordinate, grid: GridView) {
 		this.coordinate = coordinate;
 		this.gridView = grid;
 		this.isActive = true;
+		this.marked = false;
 	}
 
 	setGrid(grid: GridView) {
@@ -59,6 +69,17 @@ export default class GridSquareView implements IRenderable {
 		});
 
 		this.bounds = this.sceneObject.getBounds();
+	}
+
+	markSquare(hit = false): void {
+		if (this.marked) return;
+		const pos = this.sceneObject.getCenter();
+		this.scene.add
+			.image(pos.x, pos.y, Assets.Mark)
+			.setScale(this.scale)
+			.setTint(hit ? 0x00ff00 : 0xff0000)
+			.setDepth(GridSquareView.markDepth);
+		this.marked = true;
 	}
 
 	setActive(active: boolean): void {

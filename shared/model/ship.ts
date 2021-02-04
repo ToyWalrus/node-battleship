@@ -7,7 +7,6 @@ interface ShipArgs {
 	length: number;
 	coordinates?: Coordinate[];
 	damage?: Coordinate[];
-	grid?: Grid;
 }
 
 export default class Ship {
@@ -17,9 +16,6 @@ export default class Ship {
 	private _id: string;
 
 	get id(): string {
-		if (!this._id) {
-			this._id = UuidV4();
-		}
 		return this._id;
 	}
 	get isSunk(): boolean {
@@ -32,10 +28,11 @@ export default class Ship {
 		return this._coordinates;
 	}
 
-	constructor({ length, grid, coordinates, damage }: ShipArgs) {
+	constructor({ length, coordinates, damage }: ShipArgs) {
 		this._length = length;
 		this._coordinates = coordinates || [];
 		this._damage = damage || [];
+		this._id = UuidV4();
 	}
 
 	setCoordinates(coordinates: Coordinate[]): void {

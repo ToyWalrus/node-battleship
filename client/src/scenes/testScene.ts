@@ -6,6 +6,7 @@ import { CanvasDimensions, GridImageDimensions } from '../../../shared/utils/con
 import { Assets, GamePhase } from '../../../shared/utils/enums';
 import GridView from '../view/gridView';
 import ShipView from '../view/shipView';
+import GameScene from './gameScene';
 
 export default class TestScene extends Phaser.Scene {
 	battleshipGame: Game;
@@ -40,6 +41,13 @@ export default class TestScene extends Phaser.Scene {
 
 		let gridView = new GridView(new Grid(), testPlayer);
 		gridView.render(this, { x: 300, y: 300 }, scale);
+
+		this.add
+			.text(700, 600, 'Change scene', { color: '#000000' })
+			.setInteractive()
+			.on('pointerdown', () => {
+				this.scene.start(GameScene.key, { i: 'data i', shipview, gridView });
+			});
 	}
 
 	spawnGrids() {

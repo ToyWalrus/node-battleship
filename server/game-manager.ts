@@ -98,6 +98,7 @@ export default class GameManager {
 	// Happens when a player is... you know... disconnected
 	playerDisconnected(socket: Socket): void {
 		this._log('User disconnected! ', socket.id);
+		// TODO: destroy room when a player leaves
 		this.playerConnections.delete(socket);
 	}
 
@@ -131,7 +132,7 @@ export default class GameManager {
 			game = new Game();
 			this.games.set(roomId, game);
 		}
-		if (game.started) {
+		if (game.started || game.players.length === 2) {
 			this._warn('Player joined a game that has already started!');
 			clientJoinGameCallback(false);
 			return;

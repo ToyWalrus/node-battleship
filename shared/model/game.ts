@@ -62,9 +62,20 @@ export default class Game {
 	}
 
 	getGridFor(player: Player): Grid | null {
-		if (this._playerIdToGridId[player.id]) {
+		if (player && this._playerIdToGridId[player.id]) {
 			const gridId = this._playerIdToGridId[player.id];
 			return this._grids[gridId];
+		}
+		return null;
+	}
+
+	getGridForOpponent(player: Player): Grid | null {
+		if (!player || this.players.length < 2) return null;
+		for (const p of this.players) {
+			if (p.id !== player.id) {
+				const gridId = this._playerIdToGridId[p.id];
+				return this._grids[gridId];
+			}
 		}
 		return null;
 	}
@@ -76,7 +87,7 @@ export default class Game {
 	}
 
 	isPlayerTurn(player: Player): boolean {
-		return player.id === this.currentPlayer.id;
+		return player?.id === this.currentPlayer?.id;
 	}
 
 	gridSquareClicked(player: Player, grid: Grid, coordinate: Coordinate): boolean {
@@ -84,10 +95,10 @@ export default class Game {
 			throw 'Cannot click square in any phase except guessing!';
 		}
 
-		if (this.isPlayerTurn(player) && grid.id !== this.getGridFor(player)?.id) {
+		if (player && grid && this.isPlayerTurn(player) && grid.id !== this.getGridFor(player)?.id) {
 			return this.guessSquare(player, grid, coordinate);
 		} else {
-			console.log(`${player.name} clicked square, but it either wasn't their turn or was the wrong grid.`);
+			console.log(`${player?.name} clicked square, but it either wasn't their turn or was the wrong grid.`);
 			return false;
 		}
 	}
@@ -105,6 +116,7 @@ export default class Game {
 	static fromJson(json: object): Game {
 		if (!json) return null;
 		let game = new Game();
+		game._currentPlayerTurn = json['_currentPlayerTurn'];
 		game._phase = json['_phase'];
 		game._players = {};
 		game._grids = {};
