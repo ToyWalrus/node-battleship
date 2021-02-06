@@ -42,6 +42,11 @@ export default class GameScene extends Phaser.Scene {
 	private _hexBlack = 0x222222;
 	private _labelFontColor = '#222222';
 	private _accentFontColor = '#4effce';
+	private _playerNameLabelStyle: Phaser.Types.GameObjects.Text.TextStyle = {
+		color: this._labelFontColor,
+		fontSize: '26px',
+		fontStyle: 'bold',
+	};
 
 	get localPlayerId(): string {
 		return this.args?.localPlayer.id;
@@ -120,6 +125,12 @@ export default class GameScene extends Phaser.Scene {
 				{ x: scaledGridWidth / 2, y: CanvasDimensions.height - scaledGridHeight / 2 - padding },
 				scale
 			);
+			this.add.text(
+				padding,
+				CanvasDimensions.height - scaledGridHeight - padding * 2,
+				this.args?.localPlayer?.name,
+				this._playerNameLabelStyle
+			);
 		} else {
 			this.localGrid.updateGridRef(this.gameRef.getGridFor(this.localPlayerId));
 		}
@@ -148,6 +159,8 @@ export default class GameScene extends Phaser.Scene {
 				null,
 				this._onGridClick.bind(this)
 			);
+
+			let opponentName = this.gameRef.players.filter((p) => p.id !== this.localPlayerId)[0].name;
 			this.opponentGrid.render(
 				this,
 				{
@@ -155,6 +168,12 @@ export default class GameScene extends Phaser.Scene {
 					y: CanvasDimensions.height - scaledGridHeight / 2 - padding,
 				},
 				scale
+			);
+			this.add.text(
+				CanvasDimensions.width - scaledGridWidth - padding,
+				CanvasDimensions.height - scaledGridHeight - padding * 2,
+				opponentName,
+				this._playerNameLabelStyle
 			);
 		} else {
 			this.opponentGrid.updateGridRef(this.gameRef.getGridForOpponent(this.localPlayerId));
