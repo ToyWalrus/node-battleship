@@ -20,7 +20,7 @@ import Coordinate from '../../../shared/model/coordinate';
 import SetupScene from './setupScene';
 
 export interface GameSceneArgs {
-	localPlayerId: string;
+	localPlayer: Player;
 	localGrid: Grid;
 	socket: Socket;
 	roomId: string;
@@ -44,7 +44,7 @@ export default class GameScene extends Phaser.Scene {
 	private _accentFontColor = '#4effce';
 
 	get localPlayerId(): string {
-		return this.args?.localPlayerId;
+		return this.args?.localPlayer.id;
 	}
 	get roomId(): string {
 		return this.args?.roomId;
@@ -89,6 +89,7 @@ export default class GameScene extends Phaser.Scene {
 	create() {
 		this.drawTitleText('Room Id: ' + this.roomId);
 		this.drawLocalPlayerGrid();
+		this.drawPlayerShips();
 		this.drawOpponentGrid();
 		this.drawOrDestroyStartGameButton();
 	}
@@ -123,6 +124,15 @@ export default class GameScene extends Phaser.Scene {
 			this.localGrid.updateGridRef(this.gameRef.getGridFor(this.localPlayerId));
 		}
 		this.localGrid.setActive(false);
+	}
+
+	drawPlayerShips() {
+		if (this.localGrid) {
+			let ships = this.args?.localPlayer?.getShips();
+			for (const ship of ships) {
+				this.localGrid.drawInactiveShip(ship);
+			}
+		}
 	}
 
 	drawOpponentGrid() {

@@ -11,6 +11,9 @@ const io = require('socket.io')(http, {
 });
 
 http.listen(ServerInfo.port, () => {
-	console.log('Server started! yay!');
-	new GameManager(io, true);
+	const isDebug = process.argv[process.argv.length - 1] === 'true';
+	if (isDebug) {
+		console.log('Server started! yay!');
+	}
+	new GameManager(io, isDebug);
 });

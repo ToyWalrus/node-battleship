@@ -44,6 +44,10 @@ export default class Player {
 		this._ships = ships;
 	}
 
+	getShips(): Ship[] {
+		return this._ships;
+	}
+
 	selectShip(ship: Ship): void {
 		this._selectedShip = ship;
 	}

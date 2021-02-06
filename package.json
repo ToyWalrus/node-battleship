@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start-server": "nodemon --config nodemon.json server/server.ts",
-    "start-server:debug": "nodemon --config nodemon.json --inspect-brk server/server.ts",
-    "start-client": "cd client/ && npm start"
+    "server": "nodemon --config nodemon.json server/server.ts false",
+    "server-debug": "nodemon --config nodemon.json server/server.ts true",
+    "client": "cd client/ && npm start"
   },
   "repository": {
     "type": "git",

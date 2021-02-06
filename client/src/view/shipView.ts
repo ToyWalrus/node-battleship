@@ -19,22 +19,27 @@ export default class ShipView implements IRenderable {
 	repositioningShip: boolean;
 	previousShipLocation: Coordinate;
 	hasBeenPlaced: boolean;
+	draggable: boolean;
 
 	static currentFacingDirection: Direction = Direction.Right;
 	static viewDepth = 2;
 
-	constructor(owner: Player, ship: Ship, shipAsset: string) {
+	constructor(owner: Player, ship: Ship, shipAsset: string, draggable = true) {
 		this.owner = owner;
 		this.shipRef = ship;
 		this.assetPath = shipAsset;
 		this.dragging = false;
 		this.repositioningShip = false;
+		this.draggable = draggable;
 	}
 
 	render(scene: Phaser.Scene, position: Vector2, scale: number): void {
-		this.sceneObject = scene.add.image(position.x, position.y, this.assetPath).setScale(scale).setInteractive();
+		this.sceneObject = scene.add.image(position.x, position.y, this.assetPath).setScale(scale);
+		if (this.draggable) {
+			this.sceneObject.setInteractive();
+			scene.input.setDraggable(this.sceneObject);
+		}
 		this.sceneObject.setDepth(ShipView.viewDepth);
-		scene.input.setDraggable(this.sceneObject);
 
 		let bounds = this.sceneObject.getBounds();
 		this.shipLengthInPixels = bounds.width;
@@ -133,8 +138,9 @@ export default class ShipView implements IRenderable {
 		}
 	}
 
-	updateShipRotation(): void {
-		switch (ShipView.currentFacingDirection) {
+	updateShipRotation(direction?: Direction): void {
+		direction = direction || ShipView.currentFacingDirection;
+		switch (direction) {
 			case Direction.Right:
 				this.sceneObject.angle = 0;
 				break;
@@ -182,6 +188,27 @@ export default class ShipView implements IRenderable {
 
 		this.hasBeenPlaced = false;
 		this.shipRef.setCoordinates([]);
+	}
+
+	static determineFacingDirection(ship: Ship): Direction {
+		console.log(ship);
+		if (!ship.coordinates || ship.coordinates.length === 0) return Direction.Right;
+		const c1 = ship.coordinates[0];
+		const c2 = ship.coordinates[1];
+		if (c1.equals(c2)) {
+			console.error('Two of the ship coordinates are the same!');
+			return Direction.Right;
+		}
+
+		if (c1.col === c2.col) {
+			// Vertical
+			if (c1.row < c2.row) return Direction.Down;
+			return Direction.Up;
+		} else {
+			// Horizontal
+			if (c1.col < c2.col) return Direction.Right;
+			return Direction.Left;
+		}
 	}
 
 	private _checkIfInBounds(startSpot: Coordinate, dir: Direction): boolean {

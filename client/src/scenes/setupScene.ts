@@ -133,7 +133,7 @@ export default class SetupScene extends Phaser.Scene {
 
 		for (let i = 0; i < this.playerShipRefs.length; ++i) {
 			const ship = this.playerShipRefs[i];
-			const shipView = new ShipView(this.localPlayer, ship, this._getShipAsset(ship));
+			const shipView = new ShipView(this.localPlayer, ship, SetupScene.getShipAsset(ship));
 			const positionY = shipsPosition.y + shipPositionalGap * (i + 1);
 			shipView.render(this, { x: shipsPosition.x, y: positionY }, scale);
 			this.playerShips.push(shipView);
@@ -232,7 +232,7 @@ export default class SetupScene extends Phaser.Scene {
 			(wasAcceptedIntoGame: boolean) => {
 				if (wasAcceptedIntoGame) {
 					this.scene.start('BattleshipGame_Game', {
-						localPlayerId: this.localPlayer.id,
+						localPlayer: this.localPlayer,
 						localGrid: this.playerGrid,
 						socket: this.socket,
 						roomId: this.roomIdInput.text,
@@ -245,7 +245,7 @@ export default class SetupScene extends Phaser.Scene {
 		);
 	}
 
-	private _getShipAsset(ship: Ship): string {
+	public static getShipAsset(ship: Ship): string {
 		switch (ship.length) {
 			case 2:
 				return Assets.Submarine;

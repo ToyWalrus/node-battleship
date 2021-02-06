@@ -8,6 +8,8 @@ import { GridSquareDimensions } from '../../../shared/utils/constants';
 import ShipView from './shipView';
 import Player from '../../../shared/model/Player';
 import { Math } from 'phaser';
+import Ship from '../../../shared/model/ship';
+import SetupScene from '../scenes/setupScene';
 
 type GridSquareClickCallback = (grid: Grid, coord: Coordinate) => void;
 
@@ -17,6 +19,7 @@ export default class GridView implements IRenderable {
 	isActive: boolean;
 	owner: Player;
 	scale: number;
+	sceneObject: Phaser.GameObjects.GameObject;
 	gridSquareClickCallback: GridSquareClickCallback;
 
 	previousDragOriginCoordinate: Coordinate;
@@ -44,6 +47,7 @@ export default class GridView implements IRenderable {
 		let grid = scene.add.image(gridCenter.x, gridCenter.y, Assets.Grid).setScale(scale).setInteractive();
 		const bounds = grid.getBounds();
 		const topLeft = grid.getTopLeft();
+		this.sceneObject = grid;
 
 		scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
 			if (!this.owner?.hasSelectedShip) {
@@ -84,6 +88,15 @@ export default class GridView implements IRenderable {
 		}
 	}
 
+	drawInactiveShip(ship: Ship): ShipView {
+		const shipView = new ShipView(null, ship, SetupScene.getShipAsset(ship), false);
+		const direction = ShipView.determineFacingDirection(ship);
+		shipView.render(this.sceneObject.scene, { x: 0, y: 0 }, this.scale);
+		this.alignPlacedShip(shipView, ship.coordinates[0], direction);
+		shipView.updateShipRotation(direction);
+		return shipView;
+	}
+
 	onGridSquareClicked(coordinate: Coordinate): void {
 		if (this.isActive && this.gridSquareClickCallback) {
 			this.gridSquareClickCallback(this.gridRef, coordinate);
@@ -99,7 +112,7 @@ export default class GridView implements IRenderable {
 			// console.log('placed ship:');
 			// console.log(this.gridRef.toString());
 			// reposition ship within the grid
-			this.alignPlacedShip(ship, originCoordinate);
+			this.alignPlacedShip(ship, originCoordinate, ShipView.currentFacingDirection);
 			this.unhighlightAllSquares();
 		}
 		return success;
@@ -180,7 +193,7 @@ export default class GridView implements IRenderable {
 		}
 	}
 
-	alignPlacedShip(ship: ShipView, originCoordinate: Coordinate) {
+	alignPlacedShip(ship: ShipView, originCoordinate: Coordinate, facingDirection: Direction) {
 		const originBounds = this.getSquare(originCoordinate).bounds;
 		const length = ship.shipRef.length;
 		let additionalShift = 0;
@@ -193,7 +206,7 @@ export default class GridView implements IRenderable {
 		const pixelsToShift = (shiftAmount * GridSquareDimensions.width + additionalShift) * this.scale;
 
 		let newShipPos: Vector2;
-		switch (ShipView.currentFacingDirection) {
+		switch (facingDirection) {
 			case Direction.Right:
 				newShipPos = { x: originBounds.centerX + pixelsToShift, y: originBounds.centerY };
 				break;
