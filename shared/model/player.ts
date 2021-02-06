@@ -27,6 +27,9 @@ export default class Player {
 	get name(): string {
 		return this._name;
 	}
+	get guessedCoordinates(): Coordinate[] {
+		return this._guessedCoordinates;
+	}
 
 	constructor(args?: PlayerArgs) {
 		this._name = args?.name || 'Player';
@@ -73,8 +76,8 @@ export default class Player {
 		this._guessedCoordinates.push(coordinate);
 	}
 
-	allShipsAreSunk(): boolean {
-		return this._ships.length > 0 && this._ships.every((s) => s.isSunk);
+	allShipsAreSunk(opponentGuessedCoordinates: Coordinate[]): boolean {
+		return this._ships.length > 0 && this._ships.every((s) => s.isSunkFrom(opponentGuessedCoordinates));
 	}
 
 	static fromJSON(json: object): Player {

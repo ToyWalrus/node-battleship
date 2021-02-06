@@ -64,6 +64,8 @@ export default class GameManager {
 
 		const roomId = args.roomId;
 		const game = this.games.get(roomId);
+		if (game.isGameOver()) return;
+
 		try {
 			const player = game.getPlayer(args.sendingPlayerId);
 			const coord = Coordinate.fromJson(args.coordinate);
@@ -161,11 +163,13 @@ export default class GameManager {
 		this.playerConnections.set(socket, roomId);
 		socket.join(roomId);
 		clientJoinGameCallback(true);
-		
+
 		// Register player to game
 		const grid = Grid.fromJson(args.grid);
 		game.addPlayer(player, grid);
-		this._log(`Player (${player.name}) joined game "${args.roomId}"! (Current player count: ${game.players.length})`);
+		this._log(
+			`Player (${player.name}) joined game "${args.roomId}"! (Current player count: ${game.players.length})`
+		);
 		if (game.players.length === 2) {
 			// Tell clients everything is ready
 			this._broadcastEvent(GAME_READY, { game } as UpdateGameArgs, roomId);

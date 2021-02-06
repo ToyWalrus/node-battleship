@@ -187,6 +187,7 @@ export default class GameScene extends Phaser.Scene {
 				.text(0, 0, 'Start Game!', {
 					color: this._labelFontColor,
 					fontSize: '35px',
+					fontStyle: 'bold',
 				})
 				.setInteractive()
 				.on('pointerover', () => {
@@ -204,6 +205,28 @@ export default class GameScene extends Phaser.Scene {
 		}
 	}
 
+	drawLeaveGameButton() {
+		if (!this.sceneObjects.leaveGameButton) {
+			this.sceneObjects.leaveGameButton = this.add
+				.text(0, 0, 'Leave', {
+					color: this._labelFontColor,
+					fontSize: '35px',
+					fontStyle: 'bold',
+				})
+				.setInteractive()
+				.on('pointerover', () => {
+					(this.sceneObjects.leaveGameButton as Phaser.GameObjects.Text).setColor(this._accentFontColor);
+				})
+				.on('pointerout', () => {
+					(this.sceneObjects.leaveGameButton as Phaser.GameObjects.Text).setColor(this._labelFontColor);
+				})
+				.on('pointerdown', () => {
+					this.socket.emit(PLAYER_LEAVE);
+					this.scene.start(SetupScene.key);
+				});
+		}
+	}
+
 	private _onGridClick(grid: Grid, coordinate: Coordinate) {
 		this.socket?.emit(CLICK_SQUARE, {
 			coordinate,
@@ -215,9 +238,12 @@ export default class GameScene extends Phaser.Scene {
 
 	private _onGameUpdate(args: UpdateGameArgs) {
 		this.gameRef = Game.fromJson(args.game);
-		console.log('update: ', this.gameRef);
+		// console.log('update: ', this.gameRef);
 
-		if (this.gameRef.started) {
+		if (this.gameRef.isGameOver()) {
+			this.drawTitleText(this.gameRef.getWinner()?.name + ' wins!');
+			this.drawLeaveGameButton();
+		} else if (this.gameRef.started) {
 			if (this.gameRef.isPlayerTurn(this.localPlayerId)) {
 				this.drawTitleText(`Your turn!`);
 			} else {

@@ -113,16 +113,33 @@ export default class Game {
 		}
 	}
 
+	endCurrentTurn(): void {
+		this._currentPlayerTurn = (this._currentPlayerTurn + 1) % 2;
+	}
+
+	isGameOver(): boolean {
+		if (this.players.length < 2) return false;
+		const gameOver =
+			this.players[0].allShipsAreSunk(this.players[1].guessedCoordinates) ||
+			this.players[1].allShipsAreSunk(this.players[0].guessedCoordinates);
+		if (gameOver) {
+			this._phase = GamePhase.End;
+		}
+		return gameOver;
+	}
+
+	getWinner(): Player {
+		if (!this.isGameOver()) return null;
+		if (this.players[0].allShipsAreSunk(this.players[1].guessedCoordinates)) return this.players[1];
+		return this.players[0];
+	}
+
 	private _guessSquare(guessingPlayer: Player, guessingGrid: Grid, coordinate: Coordinate): boolean {
 		if (!guessingGrid || guessingGrid.get(coordinate).marked) {
 			throw `${guessingPlayer?.name} has already guessed ${coordinate.toString()}`;
 		}
 		guessingPlayer.guessCoordinate(coordinate);
 		return guessingGrid.get(coordinate).mark();
-	}
-
-	endCurrentTurn(): void {
-		this._currentPlayerTurn = (this._currentPlayerTurn + 1) % 2;
 	}
 
 	static fromJson(json: object): Game {

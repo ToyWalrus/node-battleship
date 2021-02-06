@@ -183,7 +183,7 @@ export default class ShipView implements IRenderable {
 		if (this.gridView == null) return;
 
 		this.shipRef.coordinates.forEach((coordinate) => {
-			this.gridView.gridRef.get(coordinate).removeShipPart();
+			this.gridView.gridRef.get(coordinate).setHasShip(false);
 		});
 
 		this.hasBeenPlaced = false;
@@ -191,7 +191,6 @@ export default class ShipView implements IRenderable {
 	}
 
 	static determineFacingDirection(ship: Ship): Direction {
-		console.log(ship);
 		if (!ship.coordinates || ship.coordinates.length === 0) return Direction.Right;
 		const c1 = ship.coordinates[0];
 		const c2 = ship.coordinates[1];
@@ -242,7 +241,7 @@ export default class ShipView implements IRenderable {
 		let coords = this._getSpotsFor(startSpot, dir);
 		this.shipRef.setCoordinates(coords);
 		for (const coord of coords) {
-			this.gridView.gridRef.get(coord).placeShipPart(this.shipRef);
+			this.gridView.gridRef.get(coord).setHasShip(true);
 		}
 	}
 
